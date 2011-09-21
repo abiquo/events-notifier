@@ -4,7 +4,7 @@
 
 1. Introduction
 
-Python script that monitors Abiquo Database and notifies new events based on rules.
+Python script that monitors Abiquo Database and notifies new events through email based on rules.
 Rules are stored in a SQLite database, which is queried by Notifier.
 
 2. Configuration

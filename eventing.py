@@ -55,7 +55,7 @@ def events_to_notify(events, rule):
     
     events_filtered = []
     for e in events:
-        if e.get_performedby() in rule.get_owners() and e.get_action() in rule.get_actions():
+        if ( 'all' in rule.get_owners() or e.get_performedby() in rule.get_owners()) and e.get_action() in rule.get_actions():
             events_filtered.append(e)
             
     return events_filtered

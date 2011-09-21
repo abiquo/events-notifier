@@ -42,7 +42,7 @@ def send_email(to, content):
     
     FROM, SUBJECT, BODY, IP, PORT = load_email_config()
     
-    body = "Subject: %s\n\n%s\n\n" % (SUBJECT, BODY)
+    body = "From: %s\nSubject: %s\n\n%s\n\n" % (FROM, SUBJECT, BODY)
     for e in content:
         body += str(e) + "\n"
     

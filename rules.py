@@ -93,7 +93,7 @@ def load_rules():
 
 def init_rules():
     try:
-        system('rm rules.db 2>&1 >/dev/null')
+        system('rm -f rules.db')
         con = sqlite.connect('rules.db')
         c = con.cursor()
         c.execute('CREATE TABLE rules (user VARCHAR(128), rule TEXT)')

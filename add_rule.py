@@ -5,9 +5,9 @@ import sys, getopt
 def usage():
     print "Usage: add_rule.py --user USER --actions ACTION1,...,ACTIONN --owners OWNER1,...,OWNERN "
     print "Add a new rule to the Abiquo Events Notifier.\n"
-    print "-u\t--user=USER\tTarget user of the rule"
+    print "-u\t--user=USER\tTarget user to be notified. Use all to this rule affect all users"
     print "-a\t--actions=ACTIONS\tComma separated list of actions to monitor"
-    print "-o\t--owners=OWNERS\t\tComma separated list of owners to filter by. Use 'all' for monitor any owner"
+    print "-o\t--owners=OWNERS\t\tComma separated list of owners to filter by. Use 'all' for monitor any owner. If no owner is specified, only monitors actions performed by user"
     print "-l\t--list-actions\t\tList all allowed actions"
     print ""
 
@@ -41,7 +41,7 @@ def main():
             for owner in a.split(','):
                 owners.append(owner.strip())
     
-    if not (user and actions and owners):
+    if not (user and actions):
         usage()
         return
 
@@ -59,8 +59,9 @@ def main():
     for a in actions:
         rule.add_action(a)
     
-    for o in owners:
-        rule.add_owner(o)
+    if owners:
+        for o in owners:
+            rule.add_owner(o)
     
     save_rule(rule)
     

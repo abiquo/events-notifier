@@ -51,11 +51,12 @@ def get_new_events(last_event=None,limit = 100,dbip='127.0.0.1',dbuser='root',db
         
     return events
     
-def events_to_notify(events, rule):
+def events_to_notify(events, actions, owners):
     
     events_filtered = []
+
     for e in events:
-        if ( 'all' in rule.get_owners() or e.get_performedby() in rule.get_owners()) and e.get_action() in rule.get_actions():
-            events_filtered.append(e)
+        if (actions and e.get_action() in actions) and (owners and e.get_performedby() in owners):
+                events_filtered.append(e)
             
     return events_filtered

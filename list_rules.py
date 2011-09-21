@@ -8,4 +8,5 @@ if __name__ == "__main__":
         print("User: " + r.get_user())
         print("Actions: " + str(r.get_actions()))
         print("Owners: " + str(r.get_owners()))
+        print("Severity Levels: " + str(r.get_levels()))
         print("-"*50)

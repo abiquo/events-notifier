@@ -27,21 +27,29 @@ if __name__ == '__main__':
                 users = load_users(dbip=myip,dbuser=myuser,dbpwd=mypwd)
             else:
                 users.append(r.get_user())
+
             # Load actions
             actions = r.get_actions()
+            if 'all' in actions:
+                # Do not filter by Action
+                action = ''
             
             # Load owners
             owners = r.get_owners()
             if 'all' in owners:
                 owners = load_users(dbip=myip,dbuser=myuser,dbpwd=mypwd)
+            elif not owners:
+                owners = [r.get_user()]
+                
+            # Load severity levels
+            sev_levels = r.get_levels()
+            if 'all' in sev_levels:
+                # Do not filter by Severity
+                sev_levels = ''
             
             # Filter events
             for u in users:
-                filtered_events = []
-                if not owners:
-                    filtered_events = events_to_notify(events, actions, [u])
-                else:
-                    filtered_events = events_to_notify(events, actions, owners)
+                filtered_events = events_to_notify(events, actions, owners, sev_levels)
         
                 if filtered_events:
                     print("New events to notify to user: %s" % (u))

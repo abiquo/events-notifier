@@ -11,6 +11,7 @@ class Rule(object):
         self.user = user
         self.actions = []
         self.owners = []
+        self.levels = []
 
     def get_user(self):
         return str(self.user)
@@ -20,6 +21,9 @@ class Rule(object):
 
     def get_owners(self):
         return self.owners
+
+    def get_levels(self):
+        return self.levels
     
     def add_action(self,action):
         if str(action) not in self.actions:
@@ -28,6 +32,10 @@ class Rule(object):
     def add_owner(self,user):
         if str(user) not in self.owners:
             self.owners.append(str(user))
+    
+    def add_level(self,level):
+        if str(level) not in self.levels:
+            self.levels.append(str(level))
         
     def del_action(self,action):
         if str(action) in self.actions:
@@ -36,9 +44,13 @@ class Rule(object):
     def del_owner(self,user):
         if str(user) in self.owners:
             self.owners.remove(str(user))
+    
+    def del_level(self,level):
+        if str(level) in self.levels:
+            self.levels.remove(str(level))
             
     def __repr__(self):
-        return "User = %s, Actions = %s, Action's owners = %s" % (self.get_user(), self.get_actions(), self.get_owners())
+        return "User = %s, Actions = %s, Action's owners = %s, Severity Levels = %s" % (self.get_user(), self.get_actions(), self.get_owners(), self.get_levels())
 
     def __str__(self):
         return self.__repr__()

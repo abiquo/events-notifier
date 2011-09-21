@@ -28,7 +28,16 @@ class Event(object):
         return str(self.desc)
         
     def __repr__(self):
-        return "Id = %d, User = %s, Severity = %s, Timestamp = %s, By = %s, Action = %s, Info = %s" % (self.get_id(), self.get_user(), self.get_severity(), self.get_timestamp(), self.get_performedby(), self.get_action(), self.get_desc())
+        out = ''
+        out += "Timestamp = %s\n" % self.get_timestamp()
+        out += "By = %s\n" % self.get_performedby()
+        out += "Action = %s\n" % self.get_action()
+        out += "Severity = %s\n" % self.get_severity()
+        if self.get_desc():
+            out += " Info = %s\n" % self.get_desc()
+
+        return out + '\n'
+        
     def __str__(self):
         return self.__repr__()
 
@@ -51,12 +60,12 @@ def get_new_events(last_event=None,limit = 100,dbip='127.0.0.1',dbuser='root',db
         
     return events
     
-def events_to_notify(events, actions, owners):
+def events_to_notify(events, actions, owners, sev_levels):
     
     events_filtered = []
 
     for e in events:
-        if (actions and e.get_action() in actions) and (owners and e.get_performedby() in owners):
+        if (not actions or e.get_action() in actions) and (not owners or e.get_performedby() in owners) and (not sev_levels or e.get_severity() in sev_levels):
                 events_filtered.append(e)
             
     return events_filtered

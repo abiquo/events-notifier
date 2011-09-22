@@ -59,7 +59,7 @@ if __name__ == '__main__':
                 print("New events to notify to user: %s" % (user))
                 try:
                     notify_events(user, filtered_events, dbip=myip, dbuser=myuser, dbpwd=mypwd)
-                except Exception as e:
+                except Exception, e:
                     print("An error ocurred when sending notifications to %s: %s" %(user,str(e)))
 
         if events:

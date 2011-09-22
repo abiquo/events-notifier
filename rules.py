@@ -54,6 +54,11 @@ class Rule(object):
 
     def __str__(self):
         return self.__repr__()
+
+    def __eq__(self, other):
+        if isinstance(other, Rule):
+            return (self.user == other.user) and (self.owners == other.owners) and (self.actions == other.actions) and (self.levels == other.levels)
+        return NotImplemented
           
 def save_rule(rule):
     con = sqlite.connect('rules.db')
@@ -86,12 +91,33 @@ def load_rule(user):
         
     c.close()
     con.close()
+
+def delete_rule(rule):
+    found = 0
+    con = sqlite.connect('rules.db')
+    c = con.cursor()
+
+    c.execute("select rule from rules" )
+    result = c.fetchall()
+    
+    rules = []
+    for rule64 in result:
+        r = pickle.loads(base64.b64decode(rule64[0]))
+        if r == rule:
+            c.execute("delete from rules where user == '%s' and rule == '%s'" %(rule.get_user(),base64.b64encode(pickle.dumps(rule))))
+            found = 1
+     
+    con.commit()
+    c.close()
+    con.close()
+
+    return found
     
 def load_rules():
     con = sqlite.connect('rules.db')
     c = con.cursor()
 
-    c.execute("SELECT rule FROM rules" )
+    c.execute("select rule from rules" )
     result = c.fetchall()
     
     rules = []
@@ -114,3 +140,4 @@ def init_rules():
         con.close()
     except Exception:
         raise
+

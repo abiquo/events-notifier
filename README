@@ -14,7 +14,8 @@ Rules are stored in a SQLite database, which is queried by Notifier.
     * Grant access to the Abiquo MySQL
     
         # mysql kinton
-        > GRANT select ON kinton.* TO 'root'@'events-notifier-server-ip';
+        > GRANT select ON kinton.metering TO 'root'@'events-notifier-server-ip';
+        > flush privileges;
 
 3. Basic example
 

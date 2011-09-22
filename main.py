@@ -18,42 +18,50 @@ if __name__ == '__main__':
         # Get events
         events = get_new_events(last_event,limit=100,dbip=myip,dbuser=myuser,dbpwd=mypwd)
         
-        rules = load_rules()
-        
-        for r in rules:
-            # Load users
-            users = []
-            if r.get_user() == 'all':
-                users = load_users(dbip=myip,dbuser=myuser,dbpwd=mypwd)
-            else:
-                users.append(r.get_user())
+        # Look all users that have any rule
+        for user in load_users_from_rules():
 
-            # Load actions
-            actions = r.get_actions()
-            if 'all' in actions:
-                # Do not filter by Action
-                action = []
+            filtered_events = []
             
-            # Load owners
-            owners = r.get_owners()
-            if 'all' in owners:
-                owners = load_users(dbip=myip,dbuser=myuser,dbpwd=mypwd)
-            elif not owners:
-                owners = [r.get_user()]
+            # Load user's rules
+            rules = load_rules_from_user(user)
+            
+            for r in rules:
+                # Load users. By default, the loaded user
+                users = [user]
+                if user == 'all':
+                    users = load_users(dbip=myip,dbuser=myuser,dbpwd=mypwd)
+
+                # Load actions
+                actions = r.get_actions()
+                if 'all' in actions:
+                    # Do not filter by Action
+                    action = []
                 
-            # Load severity levels
-            sev_levels = r.get_levels()
-            if 'all' in sev_levels:
-                # Do not filter by Severity
-                sev_levels = []
+                # Load owners
+                owners = r.get_owners()
+                if 'all' in owners:
+                    owners = []
+                #If owners is not set, only filter events whose owner is the user.
+                elif not owners:
+                    owners = [r.get_user()]
+                    
+                # Load severity levels
+                sev_levels = r.get_levels()
+                if 'all' in sev_levels:
+                    # Do not filter by Severity
+                    sev_levels = []
+                
+                # Filter events and add to the list
+                filtered_events.extend(events_to_notify(events, actions, owners, sev_levels))
             
-            # Filter events
-            for u in users:
-                filtered_events = events_to_notify(events, actions, owners, sev_levels)
-        
-                if filtered_events:
-                    print("New events to notify to user: %s" % (u))
-                    notify_events(u, filtered_events, dbip=myip, dbuser=myuser, dbpwd=mypwd)
+            if filtered_events:
+                print("New events to notify to user: %s" % (user))
+                try:
+                    notify_events(user, filtered_events, dbip=myip, dbuser=myuser, dbpwd=mypwd)
+                except Exception as e:
+                    print("An error ocurred when sending notifications to %s: %s" %(user,str(e)))
+
         if events:
             last_event = events[0]
         

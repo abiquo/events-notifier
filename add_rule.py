@@ -3,12 +3,12 @@ from rules import *
 import sys, getopt
 
 def usage():
-    print "Usage: add_rule.py --user USER --actions ACTION1,...,ACTIONN [ --owners OWNER1,...,OWNERN ] [ --severity LEVEL1,...,LEVELN ]"
+    print "Usage: add_rule.py --user USER [--actions ACTION1,...,ACTIONN] [ --owners OWNER1,...,OWNERN ] [ --severity LEVEL1,...,LEVELN ]"
     print "Add a new rule to the Abiquo Events Notifier.\n"
     print "-u\t--user=USER\tTarget user to be notified. Use all to this rule affect all users"
     print "-a\t--actions=ACTIONS\tComma separated list of actions to monitor"
     print "-o\t--owners=OWNERS\t\tComma separated list of owners to filter by. Use 'all' for monitor any owner. If no owner is specified, only monitors actions performed by user"
-    print "-s\t--severity-levels=LEVELS\t\tComma separated list of levels of severity to filter by. Use 'all' for monitor any level."
+    print "-s\t--severity=LEVELS\t\tComma separated list of levels of severity to filter by. Use 'all' for monitor any level."
     print "--list-actions\t\tList all allowed actions"
     print "--list-severity-levels\t\tList all severity levels"
     print ""
@@ -29,7 +29,7 @@ def main():
     sev_levels=[]
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "u:a:o:s:LS", ["user=", "actions=", "owners=", "--severity-levels", "list-actions", "list-severity-levels"])
+        opts, args = getopt.getopt(sys.argv[1:], "u:a:o:s:LS", ["user=", "actions=", "owners=", "severity=", "list-actions", "list-severity-levels"])
     except getopt.GetoptError, err:
         print str(err)
         sys.exit(2)
@@ -49,7 +49,7 @@ def main():
         elif o in ("-o", "--owners"):
             for owner in a.split(','):
                 owners.append(owner.strip())
-        elif o in ("-s", "--severity-levels"):
+        elif o in ("-s", "--severity"):
             for level in a.split(','):
                 sev_levels.append(level.strip())
     

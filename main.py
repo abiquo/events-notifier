@@ -32,7 +32,7 @@ if __name__ == '__main__':
             actions = r.get_actions()
             if 'all' in actions:
                 # Do not filter by Action
-                action = ''
+                action = []
             
             # Load owners
             owners = r.get_owners()
@@ -45,7 +45,7 @@ if __name__ == '__main__':
             sev_levels = r.get_levels()
             if 'all' in sev_levels:
                 # Do not filter by Severity
-                sev_levels = ''
+                sev_levels = []
             
             # Filter events
             for u in users:

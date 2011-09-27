@@ -3,35 +3,44 @@ from rules import *
 from notifier import *
 from eventing import *
 from time import sleep
-import pprint
 
 if __name__ == '__main__':
 
-    pp = pprint.PrettyPrinter(indent=4)
-    
     # Load DB credentials
     myip,myuser,mypwd = load_db_config()
 
-    last_event = get_new_events(limit=1,dbip=myip,dbuser=myuser,dbpwd=mypwd)[0]
-    
-    while 1:
-        # Get events
-        events = get_new_events(last_event,limit=100,dbip=myip,dbuser=myuser,dbpwd=mypwd)
+    last_event = None
+
+    try:
+        last_event = get_new_events(limit=1,dbip=myip,dbuser=myuser,dbpwd=mypwd)[0]
+    except Exception, e:
+        print("An error ocurred when accessing the database: %s" %(str(e)))
         
+    while 1:
+    
+        events = []
+    
+        # Get events
+        try:
+            events = get_new_events(last_event,limit=100,dbip=myip,dbuser=myuser,dbpwd=mypwd)
+        except Exception, e:
+            print("An error ocurred when retrieving events from %s: %s" %(myip, str(e)))
+
         # Look all users that have any rule
         for user in load_users_from_rules():
 
             filtered_events = []
             
-            # Load user's rules
-            rules = load_rules_from_user(user)
+            rules = []
+            try:
+                # Load user's rules
+                rules = load_rules_from_user(user)
+                rules.extend(load_rules_from_user('all'))
+            except Exception, e:
+                print("An error ocurred when loading rules: %s" %(str(e)))
+
             
             for r in rules:
-                # Load users. By default, the loaded user
-                users = [user]
-                if user == 'all':
-                    users = load_users(dbip=myip,dbuser=myuser,dbpwd=mypwd)
-
                 # Load actions
                 actions = r.get_actions()
                 if 'all' in actions:

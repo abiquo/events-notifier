@@ -52,7 +52,6 @@ Rules are stored in a SQLite database, which is queried by Notifier.
 4. Final notes
 
     * Add rules while Notifier is running is ALLOWED. It will load rules every time it analizes events.
-    * Only one rule per user is permited.
     * Valid actions are those listed by:
     
         # ./add_rule.py --list-actions

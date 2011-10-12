@@ -57,40 +57,69 @@ class Rule(object):
 
     def __eq__(self, other):
         if isinstance(other, Rule):
-            return (self.user == other.user) and (self.owners == other.owners) and (self.actions == other.actions) and (self.levels == other.levels)
+            return (self.user == other.user) and (self.owners.sort() == other.owners.sort()) and (self.actions.sort() == other.actions.sort()) and (self.levels.sort() == other.levels.sort())
         return NotImplemented
           
 def save_rule(rule):
     con = sqlite.connect('rules.db')
     c = con.cursor()
     
-    c.execute("SELECT rule FROM rules WHERE user = '%s' " %(rule.get_user()) )
-    row = c.fetchone()
-    
-    if row:
-        rule64 = base64.b64encode(pickle.dumps(rule))
-        sql = "UPDATE rules SET rule = '%s' WHERE user = '%s' " %(rule64, rule.get_user())
-    else:
-        rule64 = base64.b64encode(pickle.dumps(rule))
-        sql = "INSERT INTO rules (user, rule) VALUES ('%s', '%s')" %(rule.get_user(),rule64)
-
+    rule64 = base64.b64encode(pickle.dumps(rule))
+    sql = "INSERT INTO rules (user, rule) VALUES ('%s', '%s')" %(rule.get_user(),rule64)
     c.execute(sql)
+
     con.commit()
     c.close()
     con.close()
+
+def load_users_from_rules():
+    con = sqlite.connect('rules.db')
+    c = con.cursor()
+
+    c.execute("SELECT distinct(user) FROM rules")
+    result = c.fetchall()
+    
+    users = []
+    for r in result:
+        users.append(r[0])
+        
+    c.close()
+    con.close()
+    
+    return users
             
-def load_rule(user):
+def load_rules_from_user(user):
     con = sqlite.connect('rules.db')
     c = con.cursor()
 
     c.execute("SELECT rule FROM rules WHERE user = '%s' " %(user) )
-    rule64 = c.fetchone()
+    rules64 = c.fetchall()
     
-    if rule64:
-        return pickle.loads(base64.b64decode(rule64[0]))
+    rules = []
+    for r in rules64:
+        rule = pickle.loads(base64.b64decode(r[0]))
+        rules.append(rule)
         
     c.close()
     con.close()
+    
+    return rules
+
+def load_rules():
+    con = sqlite.connect('rules.db')
+    c = con.cursor()
+
+    c.execute("select rule from rules" )
+    result = c.fetchall()
+    
+    rules = []
+    for rule64 in result:
+        rules.append(pickle.loads(base64.b64decode(rule64[0])))
+        
+    c.close()
+    con.close()
+    
+    return rules
 
 def delete_rule(rule):
     found = 0
@@ -112,22 +141,6 @@ def delete_rule(rule):
     con.close()
 
     return found
-    
-def load_rules():
-    con = sqlite.connect('rules.db')
-    c = con.cursor()
-
-    c.execute("select rule from rules" )
-    result = c.fetchall()
-    
-    rules = []
-    for rule64 in result:
-        rules.append(pickle.loads(base64.b64decode(rule64[0])))
-        
-    c.close()
-    con.close()
-    
-    return rules
 
 def init_rules():
     try:

@@ -9,13 +9,14 @@ Rules are stored in a SQLite database, which is queried by Notifier.
 
 2. Configuration
 
-    * Edit notifier.cfg and put correct values.
-    
     * Grant access to the Abiquo MySQL
     
         # mysql kinton
-        > GRANT select ON kinton.metering TO 'root'@'events-notifier-server-ip';
+        > GRANT select ON kinton.metering TO 'event-notifier'@'events-notifier-server-ip';
+        > GRANT select ON kinton.user TO 'event-notifier'@'events-notifier-server-ip';
         > flush privileges;
+    
+    * Edit notifier.cfg and put correct values.
 
 3. Basic example
 
@@ -59,3 +60,13 @@ Rules are stored in a SQLite database, which is queried by Notifier.
     * Valid severity levels are those listed by:
     
         # ./add_rule.py --list-severity-levels
+
+
+Troubleshooting
+
+error:
+    ImportError: No module named MySQLdb
+
+
+solution:
+    yum install MySQL-python

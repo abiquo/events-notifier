@@ -3,6 +3,8 @@ from rules import *
 from notifier import *
 from eventing import *
 from time import sleep
+import ConfigParser
+
 
 if __name__ == '__main__':
 
@@ -10,6 +12,12 @@ if __name__ == '__main__':
     myip,myuser,mypwd = load_db_config()
 
     last_event = None
+
+    config = ConfigParser.ConfigParser()
+    config.read('notifier.cfg')
+
+    interval = int(config.get('main', 'polling_interval'))
+
 
     try:
         last_event = get_new_events(limit=1,dbip=myip,dbuser=myuser,dbpwd=mypwd)[0]
@@ -27,7 +35,7 @@ if __name__ == '__main__':
             print("An error ocurred when retrieving events from %s: %s" %(myip, str(e)))
             
         if not events:
-            sleep(5)
+            sleep(interval)
             continue
 
         # Look for all users
@@ -68,4 +76,4 @@ if __name__ == '__main__':
         if events:
             last_event = events[0]
         
-        sleep(5)
+        sleep(interval)

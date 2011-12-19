@@ -55,11 +55,11 @@ Rules are stored in a SQLite database, which is queried by Notifier.
     * Add rules while Notifier is running is ALLOWED. It will load rules every time it analizes events.
     * Valid actions are those listed by:
     
-        # ./add_rule.py --list-actions
+        http://wiki.abiquo.com/display/ABI18/Events+View#EventsView-TheActionsTable
         
     * Valid severity levels are those listed by:
-    
-        # ./add_rule.py --list-severity-levels
+
+        http://wiki.abiquo.com/display/ABI18/Events+View#EventsView-TheSeverityTable
 
 
 Troubleshooting

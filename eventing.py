@@ -1,17 +1,30 @@
-#!/usr/bin/env python
-import MySQLdb
+import pycurl, json
+import StringIO
+import time
+from dateutil import parser
+from xml.dom.minidom import parse, parseString
 
 class Event(object):
     
-    def __init__(self,id,user,severity,timestamp,performedby,action,desc):
-        self.id = id
-        self.user = user
-        self.severity = severity
-        self.timestamp = timestamp
-        self.performedby = performedby
-        self.action = action
-        self.desc = desc
+    def __init__(self,event=None,timestamp=None):
+	if timestamp == None:
+		self.id = self.get_event_value(event, "id")
+		self.user = self.get_event_value(event,"user")
+		self.severity = self.get_event_value(event,"severity")
+		self.timestamp = int(time.mktime(parser.parse(self.get_event_value(event,"timestamp")).timetuple()))
+		self.performedby = self.get_event_value(event,"performedBy")
+		self.action = self.get_event_value(event,"actionPerformed")
+		self.desc = self.get_event_value(event,"stacktrace")
+	else:
+		self.timestamp = timestamp
         
+    def get_event_value(self,event,value):
+	if event.getElementsByTagName(value)[0].childNodes:
+		value_return = event.getElementsByTagName(value)[0].childNodes[0].nodeValue
+	else:
+		value_return = ""
+	return value_return
+
     def get_id(self):
         return int(self.id)
     def get_user(self):
@@ -42,23 +55,27 @@ class Event(object):
         return self.__repr__()
 
     
-def get_new_events(last_event=None,limit = 100,dbip='127.0.0.1',dbuser='root',dbpwd=''):
-    db = MySQLdb.connect(host=dbip, user=dbuser, passwd=dbpwd, db='kinton')
-    cursor = db.cursor()
-    sql = ''
-    if last_event:
-        sql = 'SELECT idMeter,user,severity,timestamp,performedby,actionperformed,stacktrace FROM metering WHERE idMeter > %d ORDER BY idMeter DESC LIMIT %d' % (int(last_event.get_id()), int(limit))
-    else:
-        sql = 'SELECT idMeter,user,severity,timestamp,performedby,actionperformed,stacktrace FROM metering ORDER BY idMeter DESC LIMIT %d' % (int(limit))
+def get_new_events(last_event=None,limit = 100,ip='127.0.0.1',user='root',pwd=''):
 
-    cursor.execute(sql)
-    result = cursor.fetchall()
-    
-    events = []
-    for row in result:
-        events.append(Event(row[0],row[1],row[2],row[3],row[4],row[5],row[6]))
-        
-    return events
+	if last_event:
+		url = "http://%s/api/events?datefrom=%d" % (ip, int(last_event.get_timestamp())+1)
+	else:
+		url = "http://%s/api/events" % ip
+	user_pwd = '%s:%s' % (user, pwd)
+	response = StringIO.StringIO()
+	c = pycurl.Curl()
+	c.setopt(pycurl.WRITEFUNCTION, response.write)
+	c.setopt(pycurl.URL, url)
+	c.setopt(pycurl.USERPWD, user_pwd)
+	c.perform()
+
+	events_list = parseString(response.getvalue()).getElementsByTagName("event")
+
+	events = []
+	for event in events_list:
+		events.append(Event(event=event))
+
+	return events
     
 def events_to_notify(events, actions, owners, sev_levels):
     

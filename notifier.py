@@ -1,40 +1,5 @@
 #!/usr/bin/env python
-import MySQLdb
-
-def get_email_from_user(user, dbip='127.0.0.1',dbuser='root',dbpwd=''):
-    db = MySQLdb.connect(host=dbip, user=dbuser, passwd=dbpwd, db='kinton')
-    cursor = db.cursor()
-
-    sql = "SELECT email FROM user WHERE user = '%s'" % (str(user))
-    cursor.execute(sql)
-    
-    result = cursor.fetchone()
-    
-    if result:
-        cursor.close()
-        db.close()
-        return result[0]
-    
-    return None
-    
-# Load users of Abiquo
-def load_users(dbip='127.0.0.1',dbuser='root',dbpwd=''):
-    db = MySQLdb.connect(host=dbip, user=dbuser, passwd=dbpwd, db='kinton')
-    cursor = db.cursor()
-
-    sql = "SELECT user FROM user"
-    cursor.execute(sql)
-    
-    result = cursor.fetchall()
-    
-    users = []
-    if result:
-        cursor.close()
-        db.close()
-        for u in result:        
-            users.append(u[0])
-
-    return users
+from user import *
 
 # Send an email to a user with the specified content (list of events)
 def send_email(to, content):
@@ -52,11 +17,10 @@ def send_email(to, content):
     except smtplib.SMTPException:
         raise
 
-
 # Notify via email the list of events.
-def notify_events(user, events, dbip='127.0.0.1', dbuser='root', dbpwd=''):
+def notify_events(user, events):
     
-    email = get_email_from_user(user, dbip, dbuser,dbpwd)
+    email = user.get_email();
     if email:
         send_email(email, events)
     
@@ -66,9 +30,9 @@ def load_db_config():
     config = ConfigParser.ConfigParser()
     config.read('notifier.cfg')
 
-    ip = config.get('mysql', 'ip')
-    user = config.get('mysql', 'user')
-    pwd = config.get('mysql', 'pwd')
+    ip = config.get('abiquo', 'ip')
+    user = config.get('abiquo', 'user')
+    pwd = config.get('abiquo', 'pwd')
     
     return (ip, user, pwd)
 

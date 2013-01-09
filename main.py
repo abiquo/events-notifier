@@ -2,9 +2,9 @@
 from rules import *
 from notifier import *
 from eventing import *
+from user import *
 from time import sleep
 import ConfigParser
-
 
 if __name__ == '__main__':
 
@@ -18,9 +18,8 @@ if __name__ == '__main__':
 
     interval = int(config.get('main', 'polling_interval'))
 
-
     try:
-        last_event = get_new_events(limit=1,dbip=myip,dbuser=myuser,dbpwd=mypwd)[0]
+	last_event = Event(timestamp=int(time.time()))
     except Exception, e:
         print("An error ocurred when accessing the database: %s" %(str(e)))
         
@@ -30,7 +29,7 @@ if __name__ == '__main__':
     
         # Get events
         try:
-            events = get_new_events(last_event,limit=100,dbip=myip,dbuser=myuser,dbpwd=mypwd)
+            events = get_new_events(last_event,limit=100,ip=myip,user=myuser,pwd=mypwd)
         except Exception, e:
             print("An error ocurred when retrieving events from %s: %s" %(myip, str(e)))
             
@@ -39,14 +38,14 @@ if __name__ == '__main__':
             continue
 
         # Look for all users
-        for user in load_users(dbip=myip,dbuser=myuser,dbpwd=mypwd):
+        for user in load_users(ip=myip,user=myuser,pwd=mypwd):
 
             filtered_events = []
             
             rules = []
             try:
                 # Load user's rules
-                rules = load_rules_from_user(user)
+                rules = load_rules_from_user(user.get_name())
                 # Include user 'all' rules
                 rules.extend(load_rules_from_user('all'))
             except Exception, e:
@@ -58,18 +57,18 @@ if __name__ == '__main__':
                 actions = r.get_actions()
                 owners = r.get_owners()
                 if r.get_user() == 'all':
-                    owners = [user]
+                    owners = [user.get_name()]
                 sev_levels = r.get_levels()
                 
                 # Filter events and add to the list
                 filtered_events.extend(events_to_notify(events, actions, owners, sev_levels))
             
             if filtered_events:
-                print("New events to notify to user: %s" % (user))
+                print("New events to notify to user: %s" % (user.get_name()))
                 print("Events to notify: %s"%(filtered_events))
 
                 try:
-                    notify_events(user, filtered_events, dbip=myip, dbuser=myuser, dbpwd=mypwd)
+                    notify_events(user, filtered_events)
                 except Exception, e:
                     print("An error ocurred when sending notifications to %s: %s" %(user,str(e)))
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import pycurl, json
+import pycurl
 import StringIO
 from xml.dom.minidom import parse, parseString
 

@@ -1,4 +1,4 @@
-import pycurl, json
+import pycurl
 import StringIO
 import time
 from dateutil import parser

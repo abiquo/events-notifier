@@ -4,19 +4,16 @@
 
 1. Introduction
 
-Python script that monitors Abiquo Database and notifies new events through email based on rules.
+Python script that monitors Abiquo API and notifies new events through email based on rules.
 Rules are stored in a SQLite database, which is queried by Notifier.
 
 2. Configuration
 
-    * Grant access to the Abiquo MySQL
-    
-        # mysql kinton
-        > GRANT select ON kinton.metering TO 'event-notifier'@'events-notifier-server-ip';
-        > GRANT select ON kinton.user TO 'event-notifier'@'events-notifier-server-ip';
-        > flush privileges;
-    
-    * Edit notifier.cfg and put correct values.
+    * Install the required python libraries (rpmforge):
+	- python-dateutil   
+	- python-pycurl 
+ 
+    * Edit notifier.cfg and set correct values.
 
 3. Basic example
 
@@ -55,18 +52,9 @@ Rules are stored in a SQLite database, which is queried by Notifier.
     * Add rules while Notifier is running is ALLOWED. It will load rules every time it analizes events.
     * Valid actions are those listed by:
     
-        http://wiki.abiquo.com/display/ABI18/Events+View#EventsView-TheActionsTable
+        http://wiki.abiquo.com/display/ABI23/Events+View#EventsView-TheActionsTable
         
     * Valid severity levels are those listed by:
 
-        http://wiki.abiquo.com/display/ABI18/Events+View#EventsView-TheSeverityTable
+        http://wiki.abiquo.com/display/ABI23/Events+View#EventsView-TheSeverityTable
 
-
-Troubleshooting
-
-error:
-    ImportError: No module named MySQLdb
-
-
-solution:
-    yum install MySQL-python

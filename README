@@ -9,19 +9,20 @@ Rules are stored in a SQLite database, which is queried by Notifier.
 
 2. Configuration
 
-    * Install the required python libraries (rpmforge):
-	- python-dateutil   
-	- python-pycurl 
+    * Install the required python libraries:
+	python-dateutil   
+	python-pycurl 
  
-    * Edit notifier.cfg and set correct values.
+    * Edit notifier.cfg and set correct values. More information at:
+	http://wiki.abiquo.com/display/ABI23/Abiquo+Events+Notifier
+
+    * Initialize rules database
+        ./init_rules.py
 
 3. Basic example
 
-    * Init rules db
-
-        # ./init_rules.py
-
-    * Create a rule that monitor VAPP_CREATE and VAPP_DELETE actions performed by user mmorata, and notify it to user sgirones. Note that sgirones must have a valid email.
+    * Create a rule that monitor VAPP_CREATE and VAPP_DELETE actions performed by user mmorata, and notify it to user sgirones. 
+      Note that user sgirones must have a valid email.
 
         # ./add_rule.py --user sgirones --action VAPP_CREATE,VAPP_DELETE --owner mmorata
 

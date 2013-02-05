@@ -126,15 +126,8 @@ def delete_rule(rule):
     con = sqlite.connect('rules.db')
     c = con.cursor()
 
-    c.execute("select rule from rules" )
-    result = c.fetchall()
-    
-    rules = []
-    for rule64 in result:
-        r = pickle.loads(base64.b64decode(rule64[0]))
-        if r == rule:
-            c.execute("delete from rules where user == '%s' and rule == '%s'" %(rule.get_user(),base64.b64encode(pickle.dumps(rule))))
-            found = 1
+    c.execute("delete from rules where rowid == '%s'" %(rule))
+    found = 1
      
     con.commit()
     c.close()

@@ -33,7 +33,7 @@ class User(object):
 
 
 # Load users of Abiquo
-def load_users(ip='127.0.0.1',user='root',pwd=''):
+def load_users(ip,user,pwd):
 
 	users = []
 	url = "http://%s/api/admin/enterprises" % ip
@@ -45,8 +45,14 @@ def load_users(ip='127.0.0.1',user='root',pwd=''):
         c.setopt(pycurl.USERPWD, user_pwd)
         c.perform()
 
-	enterprise_list = parseString(response.getvalue()).getElementsByTagName("enterprise")
+        try:
+		enterprise_list = parseString(response.getvalue()).getElementsByTagName("enterprise")
+        except Exception, e:
+        	print("An error ocurred when parsing enterprise list: %s" %(str(e)))
+
         for enterprise in enterprise_list:
+		user_list = []
+
                 enterprise_id = enterprise.getElementsByTagName("id")[0].childNodes[0].nodeValue
 		url = "http://%s/api/admin/enterprises/%s/users" % (ip, enterprise_id)
 	        user_pwd = '%s:%s' % (user, pwd)
@@ -56,9 +62,15 @@ def load_users(ip='127.0.0.1',user='root',pwd=''):
 		c.setopt(pycurl.URL, str(url))
 	        c.setopt(pycurl.USERPWD, user_pwd)
 	        c.perform()
+		c.close()
 
-		users_list = parseString(response.getvalue()).getElementsByTagName("user")
-		for user in users_list:
-			users.append(User(user))
-        return users
-
+                try:
+			users_list = parseString(response.getvalue()).getElementsByTagName("user")
+                except Exception, e:
+                	print("An error ocurred when parsing user list: %s" %(str(e)))
+		if users_list:
+			for userin in users_list:
+				if userin.getElementsByTagName("active")[0].childNodes[0].nodeValue == 'true':
+					users.append(User(userin))
+	return users
+	

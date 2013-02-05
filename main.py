@@ -38,14 +38,14 @@ if __name__ == '__main__':
             continue
 
         # Look for all users
-        for user in load_users(ip=myip,user=myuser,pwd=mypwd):
+        for userin in load_users(ip=myip,user=myuser,pwd=mypwd):
 
             filtered_events = []
             
             rules = []
             try:
                 # Load user's rules
-                rules = load_rules_from_user(user.get_name())
+                rules = load_rules_from_user(userin.get_name())
                 # Include user 'all' rules
                 rules.extend(load_rules_from_user('all'))
             except Exception, e:
@@ -57,20 +57,20 @@ if __name__ == '__main__':
                 actions = r.get_actions()
                 owners = r.get_owners()
                 if r.get_user() == 'all':
-                    owners = [user.get_name()]
+                    owners = [userin.get_name()]
                 sev_levels = r.get_levels()
                 
                 # Filter events and add to the list
                 filtered_events.extend(events_to_notify(events, actions, owners, sev_levels))
             
             if filtered_events:
-                print("New events to notify to user: %s" % (user.get_name()))
+                print("New events to notify to user: %s" % (userin.get_name()))
                 print("Events to notify: %s"%(filtered_events))
 
                 try:
-                    notify_events(user, filtered_events)
+                    notify_events(userin, filtered_events)
                 except Exception, e:
-                    print("An error ocurred when sending notifications to %s: %s" %(user,str(e)))
+                    print("An error ocurred when sending notifications to %s: %s" %(userin,str(e)))
 
         if events:
             last_event = events[0]

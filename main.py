@@ -9,7 +9,7 @@ import ConfigParser
 if __name__ == '__main__':
 
     # Load DB credentials
-    myip,myuser,mypwd = load_db_config()
+    myip,myuser,mypwd,myport = load_db_config()
 
     last_event = None
 
@@ -29,7 +29,7 @@ if __name__ == '__main__':
     
         # Get events
         try:
-            events = get_new_events(last_event,limit=100,ip=myip,user=myuser,pwd=mypwd)
+            events = get_new_events(last_event,limit=100,ip=myip,user=myuser,pwd=mypwd,port=myport)
         except Exception, e:
             print("An error ocurred when retrieving events from %s: %s" %(myip, str(e)))
             
@@ -38,7 +38,7 @@ if __name__ == '__main__':
             continue
 
         # Look for all users
-        for userin in load_users(ip=myip,user=myuser,pwd=mypwd):
+        for userin in load_users(ip=myip,user=myuser,pwd=mypwd,port=myport):
 
             filtered_events = []
             

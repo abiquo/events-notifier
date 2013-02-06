@@ -30,11 +30,12 @@ def load_db_config():
     config = ConfigParser.ConfigParser()
     config.read('notifier.cfg')
 
-    ip = config.get('abiquo', 'ip')
-    user = config.get('abiquo', 'user')
-    pwd = config.get('abiquo', 'pwd')
+    api_ip = config.get('abiquo', 'api_ip')
+    api_user = config.get('abiquo', 'api_user')
+    api_pwd = config.get('abiquo', 'api_pwd')
+    api_port = config.get('abiquo', 'api_port')
     
-    return (ip, user, pwd)
+    return (api_ip, api_user, api_pwd, api_port)
 
 def load_email_config():
     import ConfigParser

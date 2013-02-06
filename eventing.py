@@ -55,12 +55,12 @@ class Event(object):
         return self.__repr__()
 
     
-def get_new_events(last_event=None,limit = 100,ip='127.0.0.1',user='root',pwd=''):
+def get_new_events(last_event=None,limit = 100,ip='127.0.0.1',user='admin',pwd='',port='80'):
 
 	if last_event:
-		url = "http://%s/api/events?datefrom=%d" % (ip, int(last_event.get_timestamp())+1)
+		url = "http://%s:%s/api/events?datefrom=%d" % (ip, port, int(last_event.get_timestamp())+1)
 	else:
-		url = "http://%s/api/events" % ip
+		url = "http://%s:%s/api/events" % (ip, port)
 	user_pwd = '%s:%s' % (user, pwd)
 	response = StringIO.StringIO()
 	c = pycurl.Curl()

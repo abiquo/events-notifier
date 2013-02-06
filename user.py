@@ -33,10 +33,10 @@ class User(object):
 
 
 # Load users of Abiquo
-def load_users(ip,user,pwd):
+def load_users(ip,user,pwd,port):
 
 	users = []
-	url = "http://%s/api/admin/enterprises" % ip
+	url = "http://%s:%s/api/admin/enterprises" %(ip, port)
         user_pwd = '%s:%s' % (user, pwd)
         response = StringIO.StringIO()
         c = pycurl.Curl()
@@ -54,7 +54,7 @@ def load_users(ip,user,pwd):
 		user_list = []
 
                 enterprise_id = enterprise.getElementsByTagName("id")[0].childNodes[0].nodeValue
-		url = "http://%s/api/admin/enterprises/%s/users" % (ip, enterprise_id)
+		url = "http://%s:%s/api/admin/enterprises/%s/users" % (ip, port, enterprise_id)
 	        user_pwd = '%s:%s' % (user, pwd)
 	        response = StringIO.StringIO()
 	        c = pycurl.Curl()

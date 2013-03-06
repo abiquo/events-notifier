@@ -41,7 +41,7 @@ if __name__ == '__main__':
     try:
 	last_event = Event(timestamp=int(time.time()))
     except Exception, e:
-        print("An error ocurred when accessing the database: %s" %(str(e)))
+        print("An error occurred when accessing the database: %s" %(str(e)))
         
     while 1:
     
@@ -51,7 +51,7 @@ if __name__ == '__main__':
         try:
             events = get_new_events(last_event,limit=100,ip=myip,user=myuser,pwd=mypwd,port=myport)
         except Exception, e:
-            print("An error ocurred when retrieving events from %s: %s" %(myip, str(e)))
+            print("An error occurred when retrieving events from %s: %s" %(myip, str(e)))
             
         if not events:
             sleep(interval)
@@ -69,7 +69,7 @@ if __name__ == '__main__':
                 # Include user 'all' rules
                 rules.extend(load_rules_from_user('all'))
             except Exception, e:
-                print("An error ocurred when loading rules: %s" %(str(e)))
+                print("An error occurred when loading rules: %s" %(str(e)))
 
             
             for r in rules:
@@ -90,7 +90,7 @@ if __name__ == '__main__':
                 try:
                     notify_events(userin, filtered_events)
                 except Exception, e:
-                    print("An error ocurred when sending notifications to %s: %s" %(userin,str(e)))
+                    print("An error occurred when sending notifications to %s: %s" %(userin,str(e)))
 
         if events:
             last_event = events[0]

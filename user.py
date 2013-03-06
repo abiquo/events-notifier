@@ -67,7 +67,7 @@ def load_users(ip,user,pwd,port):
         try:
 		enterprise_list = parseString(response.getvalue()).getElementsByTagName("enterprise")
         except Exception, e:
-        	print("An error ocurred when parsing enterprise list: %s" %(str(e)))
+        	print("An error occurred when parsing enterprise list: %s" %(str(e)))
 
         for enterprise in enterprise_list:
 		user_list = []
@@ -86,7 +86,7 @@ def load_users(ip,user,pwd,port):
                 try:
 			users_list = parseString(response.getvalue()).getElementsByTagName("user")
                 except Exception, e:
-                	print("An error ocurred when parsing user list: %s" %(str(e)))
+                	print("An error occurred when parsing user list: %s" %(str(e)))
 		if users_list:
 			for userin in users_list:
 				if userin.getElementsByTagName("active")[0].childNodes[0].nodeValue == 'true':

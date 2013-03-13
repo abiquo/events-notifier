@@ -13,7 +13,7 @@ Rules are stored in a SQLite database, which is queried by Notifier.
 	http://wiki.abiquo.com/display/ABI23/Abiquo+Events+Notifier
 
     * Initialize rules database
-        ./init_rules.py
+        ./init_rules_db.py
 
 3. Basic example
 

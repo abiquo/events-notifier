@@ -3,6 +3,8 @@
 Python script that monitors Abiquo API and notifies new events through email based on rules.
 Rules are stored in a SQLite database, which is queried by Notifier.
 
+This script works with Abiquo 2.3 and Abiquo 2.4 API
+
 2. Configuration
 
     * Install the required python libraries:
@@ -54,4 +56,3 @@ Rules are stored in a SQLite database, which is queried by Notifier.
     * Valid severity levels are those listed by:
 
         http://wiki.abiquo.com/display/ABI23/Events+View#EventsView-TheSeverityTable
-

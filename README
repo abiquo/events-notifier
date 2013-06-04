@@ -3,7 +3,7 @@
 Python script that monitors Abiquo API and notifies new events through email based on rules.
 Rules are stored in a SQLite database, which is queried by Notifier.
 
-This script works with Abiquo 2.3 and Abiquo 2.4 API
+This script works with Abiquo 2.6 API Outbound
 
 2. Configuration
 

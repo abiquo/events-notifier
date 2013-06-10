@@ -20,79 +20,50 @@
 #       Boston, MA 02111-1307, USA.
 
 from rules import *
-from notifier import *
-from eventing import *
-from user import *
+import sys
 from time import sleep
 import ConfigParser
+import pycurl
+import json
+from eventing import *
+
+# Receive data event
+def on_receive(data):
+   # If we received an event
+   if "timestamp" in data:
+       # Instantiate object
+       event = Event(data[5:].strip())
+       # Check if event should be notified and do if so
+       event.check_event()
 
 if __name__ == '__main__':
-
-    # Load DB credentials
-    myip,myuser,mypwd,myport = load_db_config()
-
-    last_event = None
 
     config = ConfigParser.ConfigParser()
     config.read('notifier.cfg')
 
-    interval = int(config.get('main', 'polling_interval'))
+    api_ip = str(config.get('abiquo', 'api_ip'))
+    api_user = str(config.get('abiquo', 'api_user'))
+    api_pwd = str(config.get('abiquo', 'api_pwd'))
+    api_port = str(config.get('abiquo', 'api_port'))
+    stream_path = str(config.get('abiquo', 'stream_path'))
 
-    try:
-	last_event = Event(timestamp=int(time.time()))
-    except Exception, e:
-        print("An error occurred when accessing the database: %s" %(str(e)))
-        
-    while 1:
-    
-        events = []
-    
-        # Get events
+    retry_interval = int(config.get('main', 'retry_interval'))
+    aborted = False
+
+    while not aborted:    
         try:
-            events = get_new_events(last_event,limit=100,ip=myip,user=myuser,pwd=mypwd,port=myport)
+            stream_connection = pycurl.Curl()
+            stream_connection.setopt(pycurl.USERPWD, "%s:%s" % (api_user, api_pwd))
+            stream_connection.setopt(pycurl.URL, "http://%s:%s%s" % (api_ip,api_port,stream_path))
+            stream_connection.setopt(pycurl.WRITEFUNCTION, on_receive)
+            stream_connection.perform()
+ 
+            if stream_connection.getinfo(pycurl.HTTP_CODE) != 200:
+                print "An error ocurred when connecting to stream"
+                sleep(retry_interval)
+
         except Exception, e:
-            print("An error occurred when retrieving events from %s: %s" %(myip, str(e)))
-            
-        if not events:
-            sleep(interval)
-            continue
-
-        # Look for all users
-        for userin in load_users(ip=myip,user=myuser,pwd=mypwd,port=myport):
-
-            filtered_events = []
-            
-            rules = []
-            try:
-                # Load user's rules
-                rules = load_rules_from_user(userin.get_name())
-                # Include user 'all' rules
-                rules.extend(load_rules_from_user('all'))
-            except Exception, e:
-                print("An error occurred when loading rules: %s" %(str(e)))
-
-            
-            for r in rules:
-                # Load filters
-                actions = r.get_actions()
-                owners = r.get_owners()
-                if r.get_user() == 'all':
-                    owners = [userin.get_name()]
-                sev_levels = r.get_levels()
-                
-                # Filter events and add to the list
-                filtered_events.extend(events_to_notify(events, actions, owners, sev_levels))
-            
-            if filtered_events:
-                print("New events to notify to user: %s" % (userin.get_name()))
-                print("Events to notify: %s"%(filtered_events))
-
-                try:
-                    notify_events(userin, filtered_events)
-                except Exception, e:
-                    print("An error occurred when sending notifications to %s: %s" %(userin,str(e)))
-
-        if events:
-            last_event = events[0]
-        
-        sleep(interval)
+            print "ERROR: Connection from server has been closed, retrying in %s seconds" % (retry_interval)
+            sleep(retry_interval)
+#            sys.exit(0)
+    

@@ -19,22 +19,20 @@
 #       Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #       Boston, MA 02111-1307, USA.
 
-from rules import *
-import sys
 from time import sleep
 import ConfigParser
 import pycurl
-import json
-from eventing import *
+from eventing import Event
+from rules import update_rule_list
 
 # Receive data event
 def on_receive(data):
-   # If we received an event
-   if "timestamp" in data:
-       # Instantiate object
-       event = Event(data[5:].strip())
-       # Check if event should be notified and do if so
-       event.check_event()
+    # If we received an event
+    if "timestamp" in data:
+        # Instantiate object. (We strip 5 first characters as are not JSON format)
+        event = Event(data[5:].strip())
+        # Check if event should be notified and do if so
+        event.check_event()
 
 if __name__ == '__main__':
 
@@ -48,6 +46,11 @@ if __name__ == '__main__':
     stream_path = str(config.get('abiquo', 'stream_path'))
 
     retry_interval = int(config.get('main', 'retry_interval'))
+
+    
+    # Reading rules to detect new ones (This is done every X seconds)
+    update_rule_list()
+    
     aborted = False
 
     while not aborted:    
@@ -59,11 +62,11 @@ if __name__ == '__main__':
             stream_connection.perform()
  
             if stream_connection.getinfo(pycurl.HTTP_CODE) != 200:
-                print "An error ocurred when connecting to stream"
+                print "An error occurred connecting to stream, retrying in %s seconds" % (retry_interval)
                 sleep(retry_interval)
 
         except Exception, e:
-            print "ERROR: Connection from server has been closed, retrying in %s seconds" % (retry_interval)
+            print "ERROR: Connection from server has been terminated, retrying in %s seconds" % (retry_interval)
             sleep(retry_interval)
 #            sys.exit(0)
     

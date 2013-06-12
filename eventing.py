@@ -21,8 +21,11 @@
 
 import time
 from dateutil import parser
+from notifier import send_email
+from rules import get_rule_list
 import json
 
+### Example data from API Outbound
 # {"timestamp":"1370903626167","user":"/admin/enterprises/1/users/1","enterprise":"/admin/enterprises/1","severity":"ERROR","source":"ABIQUO_SERVER","action":"DELETE","type":"DATACENTER","entityIdentifier":"/admin/datacenters/1","details":{"detail":[{"@key":"MESSAGE","$":"Cannot delete datacenter with virtual datacenters associated"},{"@key":"SCOPE","$":"DATACENTER"},{"@key":"CODE","$":"DC-6"}]}}
 
 class Event(object):
@@ -38,8 +41,21 @@ class Event(object):
         self.desc = data['details']
 
     def check_event(self):
-        print "TO-DO: Check if event needs to be notified"
+        # When an event is received, we check rule by rule is needs to be notifed
+        rule_list = get_rule_list()
+        for rule in rule_list:
+           # Rule list is in dictionary/json format
+           rule_dict = json.loads(rule)
+           if ((self.severity == rule_dict['severity'] or rule_dict['severity'] == "all") and 
+               (self.action == rule_dict['action'] or rule_dict['action'] == "all") and
+               (self.entitytype == rule_dict['entity'] or rule_dict['entity'] == "all") and
+               (self.performedby == self.enterprise+"/users/"+rule_dict['user'] or rule_dict['user'] == "all") and
+               (self.enterprise == "/admin/enterprise/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all")):
+               # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
+                   try:
+		       # Here is the call to notify by mail the event
+                       mail_body = str(self.action)+" description: "+str(self.desc)
+                       send_email(str(rule_dict['mailto']),mail_body)
+                   except Exception, e:
+                       print("An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
 
-# Basically, check rule per rule to see if matches with any of them
-# WANRNING: Several API calls required, maybe we need to think in put urls in rules instead of users
-    

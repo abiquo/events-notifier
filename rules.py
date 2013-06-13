@@ -37,11 +37,7 @@ def update_rule_list():
     # TO-DO check if rules.cfg has been modified or not to reduce file open task
     try:
         with open("rules.cfg") as f:
-#            statbuf = os.stat('rules.cfg')
-#            print statbuf.st_mtime
-#            print last_rule_modification
-#            if (statbuf.st_mtime != last_rule_modification):
-                print "New rules found. Loading new rules"
+                print "INFO: New rules found. Loading new rules"
                 clear_rule_list()
                 for line in f:
                     add_rule(line)
@@ -53,6 +49,6 @@ def update_rule_list():
     finally:
         f.close()
 
-    # rule_update() is called every 60 seconds
+    # rule_update() is called every "rule_read_interval" seconds
     threading.Timer(60, update_rule_list).start()
 

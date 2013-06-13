@@ -24,6 +24,7 @@ import ConfigParser
 import pycurl
 from eventing import Event
 from rules import update_rule_list
+from ruleeditor import *
 
 # Receive data event
 def on_receive(data):
@@ -47,10 +48,20 @@ if __name__ == '__main__':
 
     retry_interval = int(config.get('main', 'retry_interval'))
 
+    rule_editor_port = int(config.get('ruleeditor', 'rule_editor_port'))
+
     
     # Reading rules to detect new ones (This is done every X seconds)
     update_rule_list()
-    
+   
+    # Start Rule editor webserver app
+    try:
+        rule_editor = ruleEditor
+        rule_editor.start_webserver(rule_editor_port)
+    except Exception, e:
+        print "ERROR: An error occurred when loading Rule editor web app"
+        print e
+ 
     aborted = False
 
     while not aborted:    

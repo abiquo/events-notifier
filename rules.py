@@ -20,11 +20,30 @@
 #       Boston, MA 02111-1307, USA.
 
 import threading
+import os.path, time
+import datetime
 
 def clear_rule_list():
     global rule_list
     rule_list = []
 
+# Helper function that helps determinate if rules.cfg file has been modified
+def last_rule_modification(date_time):
+    global rule_modification_ts
+    # Check if variable has been initialized
+    try: rule_modification_ts
+    # If not, set first modification timestamp and return true to force first rule load
+    except NameError: 
+        rule_modification_ts = date_time
+        return True
+    # If it exist, check if file has been modified since last execution
+    else:
+        if rule_modification_ts == date_time:
+            return False
+        else:
+            rule_modification_ts = date_time
+            return True 
+  
 def add_rule(rule):
     rule_list.append(rule)
 
@@ -34,20 +53,23 @@ def get_rule_list():
 def update_rule_list():
     # rule_update() is called every 60 seconds
 
-    # TO-DO check if rules.cfg has been modified or not to reduce file open task
     try:
-        with open("rules.cfg") as f:
-                print "INFO: New rules found. Loading new rules"
-                clear_rule_list()
-                for line in f:
-                    add_rule(line)
-                print rule_list[0]
-
+        # Check if rules.cfg file has been modified
+        reload_rules = last_rule_modification(time.ctime(os.path.getmtime('rules.cfg')))
+        if reload_rules:
+            try:
+                with open("rules.cfg") as f:
+                        print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New rules found. Loading new rules"
+                        clear_rule_list()
+                        for line in f:
+                            add_rule(line)
+            except IOError:
+                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: rules.cfg files does not exists or is unreadable"
+            finally:
+                f.close()
     except IOError:
-        print "ERROR: rules.cfg files does not exists"
-        return 0
-    finally:
-        f.close()
+        print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: rules.cfg files does not exists or is unreadable"
+
 
     # rule_update() is called every "rule_read_interval" seconds
     threading.Timer(60, update_rule_list).start()

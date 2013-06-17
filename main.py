@@ -20,15 +20,17 @@
 #       Boston, MA 02111-1307, USA.
 
 from time import sleep
+import datetime
 import ConfigParser
 import pycurl
 from eventing import Event
 from rules import update_rule_list
-from ruleeditor import *
+from ruleeditor import ruleEditor
 
 # Receive data event
 def on_receive(data):
     # If we received an event
+    
     if "timestamp" in data:
         # Instantiate object. (We strip 5 first characters as are not JSON format)
         event = Event(data[5:].strip())
@@ -47,25 +49,26 @@ if __name__ == '__main__':
     stream_path = str(config.get('abiquo', 'stream_path'))
 
     retry_interval = int(config.get('main', 'retry_interval'))
-
     rule_editor_port = int(config.get('ruleeditor', 'rule_editor_port'))
-
-    
+ 
     # Reading rules to detect new ones (This is done every X seconds)
     update_rule_list()
    
-    # Start Rule editor webserver app
+    # Start Rule editor Webserver App as thread
     try:
         rule_editor = ruleEditor
-        rule_editor.start_webserver(rule_editor_port)
+        rule_editor.thread_webserver(rule_editor_port)
+        
+        
     except Exception, e:
-        print "ERROR: An error occurred when loading Rule editor web app"
+        print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when loading Rule editor web app"
         print e
  
     aborted = False
 
     while not aborted:    
         try:
+            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: Connection to %s:%s API Outbound established" % (api_ip,api_port)
             stream_connection = pycurl.Curl()
             stream_connection.setopt(pycurl.USERPWD, "%s:%s" % (api_user, api_pwd))
             stream_connection.setopt(pycurl.URL, "http://%s:%s%s" % (api_ip,api_port,stream_path))
@@ -73,11 +76,11 @@ if __name__ == '__main__':
             stream_connection.perform()
  
             if stream_connection.getinfo(pycurl.HTTP_CODE) != 200:
-                print "An error occurred connecting to stream, retrying in %s seconds" % (retry_interval)
+                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred connecting to stream, retrying in %s seconds" % (retry_interval)
                 sleep(retry_interval)
 
         except Exception, e:
-            print "ERROR: Connection from server has been terminated, retrying in %s seconds" % (retry_interval)
+            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: Connection from server has been terminated, retrying in %s seconds" % (retry_interval)
             sleep(retry_interval)
 #            sys.exit(0)
     

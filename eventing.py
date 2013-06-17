@@ -19,8 +19,7 @@
 #       Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #       Boston, MA 02111-1307, USA.
 
-import time
-from dateutil import parser
+import datetime
 from notifier import send_email
 from rules import get_rule_list
 import json
@@ -44,18 +43,22 @@ class Event(object):
         # When an event is received, we check rule by rule is needs to be notifed
         rule_list = get_rule_list()
         for rule in rule_list:
-           # Rule list is in dictionary/json format
-           rule_dict = json.loads(rule)
-           if ((self.severity == rule_dict['severity'] or rule_dict['severity'] == "all") and 
-               (self.action == rule_dict['action'] or rule_dict['action'] == "all") and
-               (self.entitytype == rule_dict['entity'] or rule_dict['entity'] == "all") and
-               (self.performedby == self.enterprise+"/users/"+rule_dict['user'] or rule_dict['user'] == "all") and
-               (self.enterprise == "/admin/enterprise/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all")):
-               # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
-                   try:
-		       # Here is the call to notify by mail the event
-                       mail_body = str(self.action)+" description: "+str(self.desc)
-                       send_email(str(rule_dict['mailto']),mail_body)
-                   except Exception, e:
-                       print("An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
+        # Rule list is in dictionary/json format
+            rule_dict = json.loads(rule)
+            if ((self.severity.lower() == rule_dict['severity'].lower() or rule_dict['severity'].lower() == "all") and 
+               (self.action.lower() == rule_dict['action'].lower() or rule_dict['action'].lower() == "all") and
+               (self.entitytype.lower() == rule_dict['entity'].lower() or rule_dict['entity'].lower() == "all") and
+               (self.performedby.lower() == self.enterprise.lower()+"/users/"+rule_dict['user'] or rule_dict['user'] == "all") and
+               (self.enterprise.lower() == "/admin/enterprises/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all")):
+                    # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
+                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
+                try:
+                    # TO-DO : Prepare calls to obtain item information (user/enterprise/entityIdentifier to generate
+                    #         a complete mail body description 
+                    
+                    # Here is the call to notify by mail the event
+                    mail_body = str(self.action)+" description: "+str(self.desc)
+                    send_email(str(rule_dict['mailto']),mail_body)
+                except Exception, e:
+                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
 

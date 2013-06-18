@@ -72,6 +72,11 @@ if __name__ == '__main__':
             stream_connection = pycurl.Curl()
             stream_connection.setopt(pycurl.USERPWD, "%s:%s" % (api_user, api_pwd))
             stream_connection.setopt(pycurl.URL, "http://%s:%s%s" % (api_ip,api_port,stream_path))
+            # Check if pycurl connection is hanged
+            # If speed is 1 byte within 300 seconds connection will be considered as
+            # hanged and a reconnection will be thrown
+            stream_connection.setopt(pycurl.LOW_SPEED_LIMIT, 1)
+            stream_connection.setopt(pycurl.LOW_SPEED_TIME, 300)
             stream_connection.setopt(pycurl.WRITEFUNCTION, on_receive)
             stream_connection.perform()
  
@@ -80,7 +85,7 @@ if __name__ == '__main__':
                 sleep(retry_interval)
 
         except Exception, e:
-            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: Connection from server has been terminated, retrying in %s seconds" % (retry_interval)
+            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: Connection from server has been terminated or timed out, retrying in %s seconds" % (retry_interval)
+        
             sleep(retry_interval)
-#            sys.exit(0)
     

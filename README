@@ -1,58 +1,46 @@
 1. Introduction
 
-Python script that monitors Abiquo API and notifies new events through email based on rules.
-Rules are stored in a SQLite database, which is queried by Notifier.
-
+Abiquo events-notifier is a Python script that connects to Abiquo API OUTBOUND stream and notifies events through email based on rules.
 This script works with Abiquo 2.6 API Outbound
 
 2. Configuration
+
+    * This script has been tested with Python 2.6 and 2.7
+        With lower and higher Python versions events-notifier may experience unexpected behaviour
 
     * Install the required python libraries:
 	python-dateutil   
 	python-pycurl 
  
     * Edit notifier.cfg and set correct values. More information at:
-	http://wiki.abiquo.com/display/ABI23/Abiquo+Events+Notifier
+	http://wiki.abiquo.com/display/ABI26/Abiquo+Events+Notifier
 
-    * Initialize rules database
-        ./init_rules_db.py
-
+    * Initialize rules
+        You can edit rules.cfg file directly or use the built in rule editor interface.
+        To use rule editor interface you just need to start ./main.py and connect to the correspondent URL through a web browser.
+        
 3. Basic example
 
-    * Create a rule that monitor VAPP_CREATE and VAPP_DELETE actions performed by user mmorata, and notify it to user sgirones. 
-      Note that user sgirones must have a valid email.
+    * Rule that monitor VIRTUAL_APPLIANCE creation from all enterprises and notify admin@example.com:
+        { "mailto" : "admin@example.com" , "action" : "CREATE" , "entity" : "VIRTUAL_APPLIANCE" , "severity" : "all" , "user" : "all" , "enterprise" : "all" }
+        
 
-        # ./add_rule.py --user sgirones --action VAPP_CREATE,VAPP_DELETE --owner mmorata
+    * Rule that monitor user login with ID 1 from enterprise with ID 1 and notify admin@example.com:
+        { "mailto" : "admin@example.com" , "action" : "LOGIN" , "entity" : "all" , "severity" : "all" , "user" : "1" , "enterprise" : "1" }
 
-    * Verify rules are correctly created:
+    Rules.cfg is a strict format file, each line is a rule and each rule is a JSON dictionary with indicated atributes. Any malformed line may interfere in the events-notifier.
 
-        # ./list_rules.py 
-
-            --------------------------------------------------
-            User: sgirones
-            Actions: ['VAPP_CREATE', 'VAPP_DELETE']
-            Owners: ['mmorata']
-            --------------------------------------------------
 
     * Run the Events Notifier
 
         # ./main.py &
         
-4. Rule's examples
-        * Notify all users when their deploys/undeploys have finished:
-            # ./add_rule.py -u all -a VAPP_POWERON,VAPP_POWEROFF
-
-        * Notify cloud admin user all criticals:
-            # ./add_rule.py -u sgirones -s CRITICAL
-        
         
 4. Final notes
 
-    * Add rules while Notifier is running is ALLOWED. It will load rules every time it analizes events.
-    * Valid actions are those listed by:
-    
-        http://wiki.abiquo.com/display/ABI23/Events+View#EventsView-TheActionsTable
-        
-    * Valid severity levels are those listed by:
+    * Add/delete rules while Notifier is running is ALLOWED. Rules.cfg file is checked every 60 seconds and if has been modified within that period new rules are loaded/deleted.
 
-        http://wiki.abiquo.com/display/ABI23/Events+View#EventsView-TheSeverityTable
+TO-DO
+- Enable/disable rule editor
+- Control access to rule editor
+

@@ -37,17 +37,19 @@ class ruleEditor(BaseHTTPRequestHandler):
         if params.has_key("action"):
             if params["action"][0] == "delete":
                 try:
-                    with open("rules.cfg") as f, open("rules_tmp.cfg", "w") as working:
-                        line_number=0 
-                        for line in f:    
-                            if line_number != int(params["data"][0]):
-                                working.write(line)
-                            line_number+=1
+		    f = open("rules.cfg","r")
+		    working = open("rules_tmp.cfg", "w")
+                    line_number=0 
+                    for line in f:    
+                        if line_number != int(params["data"][0]):
+                            working.write(line)
+                        line_number+=1
                 except IOError:
                     print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: rules.cfg files does not exist or is unreadable"
                     return 0
                 finally:
                     f.close()
+		    working.close()
                 
                 try:
                     os.rename("rules_tmp.cfg", "rules.cfg")
@@ -65,7 +67,7 @@ class ruleEditor(BaseHTTPRequestHandler):
         elif params.has_key("rule_email"):
                 try:
                     # Compose new_rule from passed parameters
-                    new_rule = '{ "mailto" : "'+params["rule_email"][0]+'" , "action" : "'+params["rule_action"][0]+'" , "entity" : "'+params["rule_entity"][0]+'" , "severity" : "'+params["rule_severity"][0]+'" , "user" : "'+params["rule_user"][0]+'" , "enterprise" : "'+params["rule_enterprise"][0]+'" }'
+                    new_rule = '{ "mailto" : "'+params["rule_email"][0]+'" , "action" : "'+params["rule_action"][0]+'" , "entity" : "'+params["rule_entity"][0]+'" , "severity" : "'+params["rule_severity"][0]+'" , "user" : "'+params["rule_user"][0]+'" , "enterprise" : "'+params["rule_enterprise"][0]+'" }\n'
                     with open("rules.cfg","a") as f:
                         f.write(new_rule)
                     # Redirect to / to avoid parameters in the URL
@@ -114,7 +116,11 @@ class ruleEditor(BaseHTTPRequestHandler):
             with open("rules.cfg") as f:
                 line_number=0
                 for line in f:
-                    rule_dict = json.loads(line)
+		    try:
+                        rule_dict = json.loads(line)
+		    except ValueError:
+			print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: rules.cfg files is not well formated. Review it to fit format"
+                        return 0
                     self.wfile.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="./?modify&action=delete&data=%s"><button type="button" class="btn btn-danger">Delete</button></a></td></tr>' % (str(rule_dict['mailto']),str(rule_dict['action']),str(rule_dict['entity']),str(rule_dict['severity']),str(rule_dict['user']),str(rule_dict['enterprise']),line_number))
                     line_number+=1
                     

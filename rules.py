@@ -130,7 +130,6 @@ def load_rules():
 
     c.execute("select rowid, rule from rules" )
     result = c.fetchall()
-    print result
     
     rules = []
     for rule64 in result:

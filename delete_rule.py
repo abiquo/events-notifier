@@ -40,7 +40,7 @@ if __name__ == "__main__":
         except ValueError:
             print 'Invalid Number'
         
-        if delete_rule(rule_n+1):
+        if delete_rule(rule_n):
             print "Rule deleted"
         else:
             print  "Rule not found"

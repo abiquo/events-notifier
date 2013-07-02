@@ -22,6 +22,8 @@
 import pycurl
 import StringIO
 import time
+import datetime
+import calendar
 from dateutil import parser
 from xml.dom.minidom import parse, parseString
 
@@ -32,7 +34,7 @@ class Event(object):
 		self.id = self.get_event_value(event, "id")
 		self.user = self.get_event_value(event,"user")
 		self.severity = self.get_event_value(event,"severity")
-		self.timestamp = int(time.mktime(parser.parse(self.get_event_value(event,"timestamp")).timetuple()))
+                self.timestamp = calendar.timegm(parser.parse(self.get_event_value(event,"timestamp")).utctimetuple())
 		self.performedby = self.get_event_value(event,"performedBy")
 		self.action = self.get_event_value(event,"actionPerformed")
 		self.desc = self.get_event_value(event,"stacktrace")
@@ -63,7 +65,7 @@ class Event(object):
         
     def __repr__(self):
         out = ''
-        out += "Timestamp = %s\n" % self.get_timestamp()
+        out += "Timestamp = %s\n" % datetime.datetime.utcfromtimestamp(int(self.get_timestamp())).strftime('%Y-%m-%d %H:%M:%S')
         out += "By = %s\n" % self.get_performedby()
         out += "Action = %s\n" % self.get_action()
         out += "Severity = %s\n" % self.get_severity()

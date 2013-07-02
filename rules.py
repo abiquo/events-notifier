@@ -128,12 +128,13 @@ def load_rules():
     con = sqlite.connect('rules.db')
     c = con.cursor()
 
-    c.execute("select rule from rules" )
+    c.execute("select rowid, rule from rules" )
     result = c.fetchall()
+    print result
     
     rules = []
     for rule64 in result:
-        rules.append(pickle.loads(base64.b64decode(rule64[0])))
+        rules.append((rule64[0], pickle.loads(base64.b64decode(rule64[1]))))
         
     c.close()
     con.close()
@@ -146,7 +147,7 @@ def delete_rule(rule):
     c = con.cursor()
 
     c.execute("delete from rules where rowid == '%s'" %(rule))
-    found = 1
+    found = 2
      
     con.commit()
     c.close()

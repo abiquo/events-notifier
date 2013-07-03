@@ -31,16 +31,40 @@ class Event(object):
     def __init__(self,event_data):
         data = json.loads(event_data)
         self.severity = data['severity']
-        self.timestamp = int(data['timestamp'])
+        self.timestamp = long(data['timestamp'])
         self.performedby = data['user']
         self.enterprise = data['enterprise']
         self.entitytype = data ['type']
         self.entityurl = data['entityIdentifier']
         self.action = data['action']
         self.desc = data['details']
+    
+    def get_severity(self):
+        return self.severity
+    
+    def get_timestamp(self):
+        return self.timestamp
+    
+    def get_performedby(self):
+        return self.performedby
+    
+    def get_enterprise(self):
+        return self.enterprise
+    
+    def get_entitytype(self):
+        return self.entitytype
+    
+    def get_entityurl(self):
+        return self.entityurl
+    
+    def get_action(self):
+        return self.action
+    
+    def get_description(self):
+        return self.desc
 
     def check_event(self):
-        # When an event is received, we check rule by rule is needs to be notifed
+        # When an event is received, we check rule by rule is needs to be notified
         rule_list = get_rule_list()
         for rule in rule_list:
         # Rule list is in dictionary/json format
@@ -52,13 +76,9 @@ class Event(object):
                (self.enterprise.lower() == "/admin/enterprises/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all")):
                     # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
                 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
-                try:
-                    # TO-DO : Prepare calls to obtain item information (user/enterprise/entityIdentifier to generate
-                    #         a complete mail body description 
-                    
+                try:                    
                     # Here is the call to notify by mail the event
-                    mail_body = str(self.action)+" description: "+str(self.desc)
-                    send_email(str(rule_dict['mailto']),mail_body)
+                    send_email(str(rule_dict['mailto']),self)
                 except Exception, e:
                     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
 

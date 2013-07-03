@@ -52,7 +52,7 @@ if __name__ == '__main__':
     rule_editor_enabled = int(config.get('ruleeditor', 'enabled'))
     rule_editor_port = int(config.get('ruleeditor', 'rule_editor_port'))
  
-    # Reading rules to detect new ones (This is done every X seconds)
+    # Reading rules to detect new ones (This is done every 60 seconds)
     update_rule_list()
    
     if rule_editor_enabled:
@@ -72,10 +72,10 @@ if __name__ == '__main__':
             stream_connection.setopt(pycurl.USERPWD, "%s:%s" % (api_user, api_pwd))
             stream_connection.setopt(pycurl.URL, "http://%s:%s%s" % (api_ip,api_port,stream_path))
             # Check if pycurl connection is hanged
-            # If speed is 1 byte within 600 seconds connection will be considered as
+            # If speed is 1 byte within 7200 seconds connection will be considered as
             # hanged and a reconnection will be thrown
             stream_connection.setopt(pycurl.LOW_SPEED_LIMIT, 1)
-            stream_connection.setopt(pycurl.LOW_SPEED_TIME, 600)
+            stream_connection.setopt(pycurl.LOW_SPEED_TIME, 7200)
             stream_connection.setopt(pycurl.WRITEFUNCTION, on_receive)
             stream_connection.perform()
  
@@ -85,6 +85,5 @@ if __name__ == '__main__':
 
         except Exception, e:
             print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: Connection from server has been terminated or timed out, retrying in %s seconds" % (retry_interval)
-        
             sleep(retry_interval)
     

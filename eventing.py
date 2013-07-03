@@ -26,6 +26,7 @@ import datetime
 import calendar
 from dateutil import parser
 from xml.dom.minidom import parse, parseString
+import pytz
 
 class Event(object):
     
@@ -48,6 +49,19 @@ class Event(object):
 		value_return = ""
 	return value_return
 
+    def generate_date(self, timestamp):
+   
+	import ConfigParser 
+        config = ConfigParser.ConfigParser()
+        config.read('notifier.cfg')
+        timezone = config.get('email', 'timezone')
+	dateformat = config.get('email', 'dateformat')
+	
+	local_tz = pytz.timezone(timezone)
+	utc_dt = datetime.datetime.utcfromtimestamp(timestamp).replace(tzinfo=pytz.utc)
+	local_dt = local_tz.normalize(utc_dt.astimezone(local_tz))
+	return local_dt.strftime(dateformat)
+
     def get_id(self):
         return int(self.id)
     def get_user(self):
@@ -65,7 +79,7 @@ class Event(object):
         
     def __repr__(self):
         out = ''
-        out += "Timestamp = %s\n" % datetime.datetime.utcfromtimestamp(int(self.get_timestamp())).strftime('%Y-%m-%d %H:%M:%S')
+	out += "Timestamp = %s\n" % self.generate_date(int(self.get_timestamp()))
         out += "By = %s\n" % self.get_performedby()
         out += "Action = %s\n" % self.get_action()
         out += "Severity = %s\n" % self.get_severity()

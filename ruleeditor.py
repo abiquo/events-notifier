@@ -153,8 +153,8 @@ class ruleEditor(BaseHTTPRequestHandler):
         
     # Silent webserver, no output on connection.
     # This can be commented for debug
-    def log_message(self, format, *args):
-        return
+    #def log_message(self, format, *args):
+    #    return
 
     @staticmethod
     def start_webserver(rule_editor_port):

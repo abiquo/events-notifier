@@ -94,15 +94,18 @@ def event_to_html(event):
     ### Get event details ###
     #########################
     
+    # Timestamp returned by API Outbound is in Java millisecond format, we need to divide by 1000
     timestamp_to_datestring = datetime.datetime.fromtimestamp(event.get_timestamp()/1000).strftime('%Y-%m-%d %H:%M:%S')
     
     api_ip,api_user,api_pwd,api_port = load_api_config()
     
+    # Check if event has been performed by SYSTEM or an user
     if event.get_performedby()=='SYSTEM':
         user_name = 'SYSTEM'
         user_surname = ""
         user_nick = ""
         user_email = ""
+    # If event has been performed by an user, get its details by doing an API call
     elif event.get_performedby() and event.get_performedby()!='SYSTEM':     
         try:
             user_details = []
@@ -123,10 +126,10 @@ def event_to_html(event):
                 user_nick = user.getElementsByTagName("nick")[0].childNodes[0].nodeValue
                 user_email = user.getElementsByTagName("email")[0].childNodes[0].nodeValue
         except Exception, e:
-            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred retrieving user-performedby data"+e
+            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred retrieving user-performedby data: "+e
         finally:
             c.close()
-    
+    # Make "beauty" severity text depending if is INFO,WARN or ERROR 
     if event.get_severity()=='INFO':
         severity_row="""<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><span class="label label-warning" style="display: inline-block;padding: 2px 4px;font-size: 11.844px;font-weight: bold;line-height: 14px;color: #fff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);white-space: nowrap;vertical-align: baseline;background-color: #0000CD;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px">INFO</span></td>"""    
     elif event.get_severity()=='WARN':
@@ -134,48 +137,54 @@ def event_to_html(event):
     else:
         severity_row="""<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><span class="label label-warning" style="display: inline-block;padding: 2px 4px;font-size: 11.844px;font-weight: bold;line-height: 14px;color: #fff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);white-space: nowrap;vertical-align: baseline;background-color: #FF0000;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px">ERROR</span></td>"""
     
-    # content is HTML data to be returned
+    #############################
+    ### Generate HTML message ###
+    #############################
     content = ""
     
     content += """
-<html>
-    <head>
-        <title>Abiquo action notification</title>
-    </head>
-    <body bgcolor="#E6E6FA" style="margin: 0;font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;font-size: 14px;line-height: 20px;color: #333;background-color: #fff">
-        <p style="margin: 0 0 10px"/><div class="container well well-large" style="padding: 19px 19px;width: 940px;margin-right: auto;margin-left: auto;min-height: 20px;margin-bottom: 20px;background-color: #f5f5f5;border: 1px solid #e3e3e3;-webkit-border-radius: 6px;-moz-border-radius: 6px;border-radius: 6px;-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05)">
-        <p class="text-center" style="margin: 0 0 10px;text-align: center"/><h1 style="margin: 10px 0;font-family: inherit;font-weight: bold;line-height: 20px;color: inherit;text-rendering: optimizelegibility;font-size: 38.5px">Abiquo action notification</h1>
-        <br><span>The action was:<br><br></span>
-
-        <div class="bs-docs-example">
-            <table class="table table-condensed" style="max-width: 100%;background-color: transparent;border-collapse: collapse;border-spacing: 0;width: 100%;margin-bottom: 20px">
-                <tbody>
-                    <tr>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Performed at: </strong> </td>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+timestamp_to_datestring+"""</td>
-                    </tr>
-                   <tr>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Performed by: </strong> </td>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+user_name.capitalize()+" "+user_surname.capitalize()+" - "+user_nick+" - "+user_email+"""</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Action: </strong> </td>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+str(event.get_action()).capitalize()+"""</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Entity: </strong> </td>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+str(event.get_entitytype()).capitalize()+"""</td>
-                    </tr>
-                    <tr>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Severity: </strong> </td>"""+severity_row+"""</tr>
-                    <tr>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Details: </strong> </td>
-                        <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"></td>
-                    </tr>
-                </tbody>
-            </table>"""+json.dumps(event.get_description())+"""</div>            
-    </body>
-</html>"""
+        <html>
+            <head>
+                <title>Abiquo action notification</title>
+            </head>
+            <body bgcolor="#E6E6FA" style="margin: 0;font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;font-size: 14px;line-height: 20px;color: #333;background-color: #fff">
+                <p style="margin: 0 0 10px"/><div style="padding: 19px 19px;width: 940px;margin-right: auto;margin-left: auto;min-height: 20px;margin-bottom: 20px;background-color: #f5f5f5;border: 1px solid #e3e3e3;-webkit-border-radius: 6px;-moz-border-radius: 6px;border-radius: 6px;-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05)">
+                <p style="margin: 0 0 10px;text-align: center"/><h1 style="margin: 10px 0;font-family: inherit;font-weight: bold;line-height: 20px;color: inherit;text-rendering: optimizelegibility;font-size: 38.5px">Abiquo action notification</h1>
+                <br><span>The action was:<br><br></span>
+        
+                <div>
+                    <table style="max-width: 100%;background-color: transparent;border-collapse: collapse;border-spacing: 0;width: 100%;margin-bottom: 20px">
+                        <tbody>
+                            <tr>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Performed at: </strong> </td>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+timestamp_to_datestring+"""</td>
+                            </tr>
+                           <tr>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Performed by: </strong> </td>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+user_name.capitalize()+" "+user_surname.capitalize()+" - "+user_nick+" - "+user_email+"""</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Action: </strong> </td>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+str(event.get_action())+"""</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Entity: </strong> </td>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+str(event.get_entitytype())+"""</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Severity: </strong> </td>"""+severity_row+"""</tr>
+                            <tr>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Details: </strong> </td>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"></td>
+                            </tr><tr><td></td><td></td></tr>"""
+    # Add stacktrace/description details to HTML message
+    for key,value in dict.iteritems(event.get_description()):
+        content += "<tr>"
+        content += """<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top">"""+key+"""</td>"""
+        content += """<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top">"""+value+"""</td>"""
+        content += "</tr>"
+    
+    content += """</tbody></table></div></body></html>"""
     
     return content
 

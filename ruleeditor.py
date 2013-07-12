@@ -134,7 +134,7 @@ class ruleEditor(BaseHTTPRequestHandler):
             <form action="" method="get">
             <tr>
             <input type="hidden" name="action" value="add">
-            <td><input type="email" required name="rule_email"></td>
+            <td><input type="text" required name="rule_email"></td>
             <td><input type="text" required name="rule_action"></td>
             <td><input type="text" required name="rule_entity"></td>
             <td><input type="text" required name="rule_severity"></td>

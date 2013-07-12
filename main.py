@@ -21,11 +21,11 @@
 
 from time import sleep
 import datetime
-import ConfigParser
 import pycurl
 from eventing import Event
 from rules import update_rule_list
 from ruleeditor import ruleEditor
+from propertyloader import *
 
 # Receive data event
 def on_receive(data):
@@ -38,19 +38,11 @@ def on_receive(data):
         event.check_event()
 
 if __name__ == '__main__':
-
-    config = ConfigParser.ConfigParser()
-    config.read('notifier.cfg')
-
-    api_ip = str(config.get('abiquo', 'api_ip'))
-    api_user = str(config.get('abiquo', 'api_user'))
-    api_pwd = str(config.get('abiquo', 'api_pwd'))
-    api_port = str(config.get('abiquo', 'api_port'))
-    stream_path = str(config.get('abiquo', 'stream_path'))
-
-    retry_interval = int(config.get('main', 'retry_interval'))
-    rule_editor_enabled = int(config.get('ruleeditor', 'enabled'))
-    rule_editor_port = int(config.get('ruleeditor', 'rule_editor_port'))
+    
+    # Load required properties from notifier.cfg
+    api_ip,api_user,api_pwd,api_port,stream_path = load_api_config()
+    retry_interval = load_main_config()
+    rule_editor_enabled,rule_editor_port = load_ruleeditor_config()
  
     # Reading rules to detect new ones (This is done every 60 seconds)
     update_rule_list()

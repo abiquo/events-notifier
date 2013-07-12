@@ -20,14 +20,13 @@
 #       Boston, MA 02111-1307, USA.
 
 import datetime
-import ConfigParser
 import smtplib
 import pycurl
 import StringIO
-import json
+from propertyloader import *
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from xml.dom.minidom import parse, parseString
+from xml.dom.minidom import parseString
 
 def send_email(to, event_to_notify):
 
@@ -68,26 +67,6 @@ def send_email(to, event_to_notify):
         print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending mail to SMTP Server"
         raise
 
-def load_email_config():
-    config = ConfigParser.ConfigParser()
-    config.read('notifier.cfg')
-
-    f = config.get('email', 'from')
-    s = config.get('email', 'subject')
-    ip = config.get('email', 'smtp_ip')
-    port = config.get('email', 'smtp_port')
-    
-    return (f, s, ip, port)
-
-def load_api_config():
-    config = ConfigParser.ConfigParser()
-    config.read('notifier.cfg')
-    api_ip = config.get('abiquo', 'api_ip')
-    api_user = config.get('abiquo', 'api_user')
-    api_pwd = config.get('abiquo', 'api_pwd')
-    api_port = config.get('abiquo', 'api_port')
-    return (api_ip, api_user, api_pwd, api_port)
-
 def event_to_html(event):
     
     #########################
@@ -97,7 +76,7 @@ def event_to_html(event):
     # Timestamp returned by API Outbound is in Java millisecond format, we need to divide by 1000
     timestamp_to_datestring = datetime.datetime.fromtimestamp(event.get_timestamp()/1000).strftime('%Y-%m-%d %H:%M:%S')
     
-    api_ip,api_user,api_pwd,api_port = load_api_config()
+    api_ip,api_user,api_pwd,api_port,_ = load_api_config()
     
     # Check if event has been performed by SYSTEM or an user
     if event.get_performedby()=='SYSTEM':

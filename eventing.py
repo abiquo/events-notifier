@@ -80,7 +80,7 @@ class Event(object):
                     # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
                 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
                 try:                    
-                    # Here is the call to notify by mail the event
+                    # Obtain recipient addresses according to notification rule 
                     recipients_list = self.obtain_recipient_address(str(rule_dict['mailto']),self.performedby,self.enterprise)
                     for recipient in recipients_list:
                         send_email(str(recipient),self)
@@ -114,7 +114,7 @@ class Event(object):
             c.perform()
             return str(json.loads(response.getvalue())['email'])
         except Exception, e:
-            print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when obtaining user details from API: %s",str(e))
+            print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when obtaining user email details from API: %s",str(e))
         finally:
             c.close
 

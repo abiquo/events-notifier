@@ -24,6 +24,7 @@ import smtplib
 import pycurl
 import StringIO
 from propertyloader import *
+import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from xml.dom.minidom import parseString
@@ -67,6 +68,26 @@ def send_email(to, event_to_notify):
         print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending mail to SMTP Server"
         raise
 
+
+    # Obtain user email address from API call
+def obtain_user_details(user_url):
+    api_ip,api_user,api_pwd,api_port,_ = load_api_config()
+    url = "http://%s:%s/api/%s" % (api_ip, api_port, user_url)
+    user_pwd = '%s:%s' % (api_user, api_pwd)
+    try:
+        response = StringIO.StringIO()
+        c = pycurl.Curl()
+        c.setopt(pycurl.WRITEFUNCTION, response.write)
+        c.setopt(pycurl.URL, str(url))
+        c.setopt(pycurl.HTTPHEADER, ['Accept: application/vnd.abiquo.user+json']) # JSON response from API
+        c.setopt(pycurl.USERPWD, user_pwd)
+        c.perform()
+        return str(json.loads(response.getvalue())['email']),str(json.loads(response.getvalue())['name']),str(json.loads(response.getvalue())['surname']),str(json.loads(response.getvalue())['nick']) 
+    except Exception, e:
+        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when obtaining user details from API: %s",str(e))
+    finally:
+        c.close
+
 def event_to_html(event):
     
     #########################
@@ -76,8 +97,6 @@ def event_to_html(event):
     # Timestamp returned by API Outbound is in Java millisecond format, we need to divide by 1000
     timestamp_to_datestring = datetime.datetime.fromtimestamp(event.get_timestamp()/1000).strftime('%Y-%m-%d %H:%M:%S')
     
-    api_ip,api_user,api_pwd,api_port,_ = load_api_config()
-    
     # Check if event has been performed by SYSTEM or an user
     if event.get_performedby()=='SYSTEM':
         user_name = 'SYSTEM'
@@ -85,29 +104,8 @@ def event_to_html(event):
         user_nick = ""
         user_email = ""
     # If event has been performed by an user, get its details by doing an API call
-    elif event.get_performedby() and event.get_performedby()!='SYSTEM':     
-        try:
-            user_details = []
-            url = "http://%s:%s/api/%s" % (api_ip, api_port, event.get_performedby())
-            user_pwd = '%s:%s' % (api_user, api_pwd)
-            response = StringIO.StringIO()
-            c = pycurl.Curl()
-            c.setopt(pycurl.WRITEFUNCTION, response.write)
-            c.setopt(pycurl.URL, str(url))
-            c.setopt(pycurl.USERPWD, user_pwd)
-            c.perform()
-            
-            user_details = parseString(response.getvalue()).getElementsByTagName("user")
-            
-            for user in user_details:
-                user_name = user.getElementsByTagName("name")[0].childNodes[0].nodeValue
-                user_surname = user.getElementsByTagName("surname")[0].childNodes[0].nodeValue
-                user_nick = user.getElementsByTagName("nick")[0].childNodes[0].nodeValue
-                user_email = user.getElementsByTagName("email")[0].childNodes[0].nodeValue
-        except Exception, e:
-            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred retrieving user-performedby data: "+e
-        finally:
-            c.close()
+    elif event.get_performedby() and event.get_performedby()!='SYSTEM':
+        user_email,user_name,user_surname,user_nick = obtain_user_details(event.get_performedby())
     # Make "beauty" severity text depending if is INFO,WARN or ERROR 
     if event.get_severity()=='INFO':
         severity_row="""<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><span class="label label-warning" style="display: inline-block;padding: 2px 4px;font-size: 11.844px;font-weight: bold;line-height: 14px;color: #fff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);white-space: nowrap;vertical-align: baseline;background-color: #0000CD;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px">INFO</span></td>"""    
@@ -127,8 +125,8 @@ def event_to_html(event):
                 <title>Abiquo action notification</title>
             </head>
             <body bgcolor="#E6E6FA" style="margin: 0;font-family: &quot;Helvetica Neue&quot;, Helvetica, Arial, sans-serif;font-size: 14px;line-height: 20px;color: #333;background-color: #fff">
-                <p style="margin: 0 0 10px"/><div style="padding: 19px 19px;width: 940px;margin-right: auto;margin-left: auto;min-height: 20px;margin-bottom: 20px;background-color: #f5f5f5;border: 1px solid #e3e3e3;-webkit-border-radius: 6px;-moz-border-radius: 6px;border-radius: 6px;-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05)">
-                <p style="margin: 0 0 10px;text-align: center"/><h1 style="margin: 10px 0;font-family: inherit;font-weight: bold;line-height: 20px;color: inherit;text-rendering: optimizelegibility;font-size: 38.5px">Abiquo action notification</h1>
+                <p style="margin: 0 0 10px"/><div style="padding: 5px 5px;width: 95%px;margin-right: auto;margin-left: auto;min-height: 20px;margin-bottom: 20px;background-color: #f5f5f5;border: 1px solid #e3e3e3;-webkit-border-radius: 6px;-moz-border-radius: 6px;border-radius: 6px;-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05)">
+                <p style="margin: 0 0 10px;text-align: center"/><h1 style="margin: 10px 0;font-family: inherit;font-weight: bold;line-height: 20px;color: inherit;text-rendering: optimizelegibility;font-size: 24px">Abiquo action notification</h1>
                 <br><span>The action was:<br><br></span>
         
                 <div>

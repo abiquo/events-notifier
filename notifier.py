@@ -149,7 +149,7 @@ def event_to_html(event,detailed):
                             </tr>
                             <tr>
                                 <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Severity: </strong> </td>"""+severity_row+"""</tr>"""
-    if detailed:
+    if detailed=="1":
         content +="""<tr>
                            <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Details: </strong> </td>
                            <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"></td>

@@ -23,19 +23,18 @@ import datetime
 import smtplib
 import pycurl
 import StringIO
-from propertyloader import *
+from propertyloader import load_api_config,load_email_config
 import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from xml.dom.minidom import parseString
 
-def send_email(to, event_to_notify):
+def send_email(to, event_to_notify,detailed):
 
     # Exit if no email address to send
     if not to:
         return
     
-    content = event_to_html(event_to_notify)
+    content = event_to_html(event_to_notify,detailed)
     
     FROM, SUBJECT, IP, PORT = load_email_config()
 
@@ -88,7 +87,7 @@ def obtain_user_details(user_url):
     finally:
         c.close
 
-def event_to_html(event):
+def event_to_html(event,detailed):
     
     #########################
     ### Get event details ###
@@ -149,17 +148,18 @@ def event_to_html(event):
                                 <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd">"""+str(event.get_entitytype())+"""</td>
                             </tr>
                             <tr>
-                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Severity: </strong> </td>"""+severity_row+"""</tr>
-                            <tr>
-                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Details: </strong> </td>
-                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"></td>
+                                <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Severity: </strong> </td>"""+severity_row+"""</tr>"""
+    if detailed:
+        content +="""<tr>
+                           <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><strong style="font-weight: bold">Details: </strong> </td>
+                           <td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"></td>
                             </tr><tr><td></td><td></td></tr>"""
-    # Add stacktrace/description details to HTML message
-    for key,value in dict.iteritems(event.get_description()):
-        content += "<tr>"
-        content += """<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top">"""+key+"""</td>"""
-        content += """<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top">"""+value+"""</td>"""
-        content += "</tr>"
+        # Add stacktrace/description details to HTML message
+        for key,value in dict.iteritems(event.get_description()):
+            content += "<tr>"
+            content += """<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top">"""+key+"""</td>"""
+            content += """<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top">"""+value+"""</td>"""
+            content += "</tr>"
     
     content += """</tbody></table></div></body></html>"""
     

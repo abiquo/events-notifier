@@ -67,7 +67,7 @@ class ruleEditor(BaseHTTPRequestHandler):
         elif params.has_key("rule_email"):
                 try:
                     # Compose new_rule from passed parameters
-                    new_rule = '{ "mailto" : "'+params["rule_email"][0]+'" , "action" : "'+params["rule_action"][0]+'" , "entity" : "'+params["rule_entity"][0]+'" , "severity" : "'+params["rule_severity"][0]+'" , "user" : "'+params["rule_user"][0]+'" , "enterprise" : "'+params["rule_enterprise"][0]+'" }\n'
+                    new_rule = '{ "mailto" : "'+params["rule_email"][0]+'" , "action" : "'+params["rule_action"][0]+'" , "entity" : "'+params["rule_entity"][0]+'" , "severity" : "'+params["rule_severity"][0]+'" , "user" : "'+params["rule_user"][0]+'" , "enterprise" : "'+params["rule_enterprise"][0]+'" , "detail": "'+params["rule_detail"][0]+'" }\n'
                     with open("rules.cfg","a") as f:
                         f.write(new_rule)
                     # Redirect to / to avoid parameters in the URL
@@ -101,12 +101,13 @@ class ruleEditor(BaseHTTPRequestHandler):
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th>Mail to</th>
+                  <th><abbr title="Insert an email address, to_user or to_role#role-name">Mail to</abbr></th>
                   <th>Action</th>
                   <th>Entity</th>
                   <th>Severity</th>
-                  <th>idUser</th>
-                  <th>idEnterprise</th>
+                  <th><abbr title="Insert the id of the User you want to track">User</abbr></th>
+                  <th><abbr title="Insert the id of the Enterprise you want to track">Enterprise</abbr></th>
+                  <th><abbr title="Insert 1 to add full stacktrace to the notification or 0 to not include stacktrace">Add details</abbr></th>
                   <th></th>
                 </tr>
               </thead>
@@ -121,7 +122,7 @@ class ruleEditor(BaseHTTPRequestHandler):
 		    except ValueError:
 			print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: rules.cfg files is not well formated. Review it to fit format"
                         return 0
-                    self.wfile.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="./?modify&action=delete&data=%s"><button type="button" class="btn btn-danger">Delete</button></a></td></tr>' % (str(rule_dict['mailto']),str(rule_dict['action']),str(rule_dict['entity']),str(rule_dict['severity']),str(rule_dict['user']),str(rule_dict['enterprise']),line_number))
+                    self.wfile.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="./?modify&action=delete&data=%s"><button type="button" class="btn btn-danger">Delete</button></a></td></tr>' % (str(rule_dict['mailto']),str(rule_dict['action']),str(rule_dict['entity']),str(rule_dict['severity']),str(rule_dict['user']),str(rule_dict['enterprise']),str(rule_dict['detail']),line_number))
                     line_number+=1
                     
         except IOError:
@@ -134,12 +135,13 @@ class ruleEditor(BaseHTTPRequestHandler):
             <form action="" method="get">
             <tr>
             <input type="hidden" name="action" value="add">
-            <td><input type="text" required name="rule_email"></td>
+            <td><input title="Insert an email address, to_user or to_role#role-name" type="text" required name="rule_email"></td>
             <td><input type="text" required name="rule_action"></td>
             <td><input type="text" required name="rule_entity"></td>
             <td><input type="text" required name="rule_severity"></td>
             <td><input type="text" class="span1" required name="rule_user"></td>
             <td><input type="text" class="span1" required name="rule_enterprise"></td>
+            <td><input type="text" class="span1" required name="rule_detail"></td>
             <td><input type="submit" class="btn btn-info" value="Add"></td>
             </form>
             </tr>

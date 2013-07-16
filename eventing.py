@@ -22,7 +22,7 @@
 import datetime
 from notifier import send_email
 from rules import get_rule_list
-from propertyloader import *
+from propertyloader import load_api_config
 import StringIO
 import json
 import pycurl
@@ -75,15 +75,16 @@ class Event(object):
             if ((self.severity.lower() == rule_dict['severity'].lower() or rule_dict['severity'].lower() == "all") and 
                (self.action.lower() == rule_dict['action'].lower() or rule_dict['action'].lower() == "all") and
                (self.entitytype.lower() == rule_dict['entity'].lower() or rule_dict['entity'].lower() == "all") and
-               (self.performedby.lower() == self.enterprise.lower()+"/users/"+rule_dict['user'] or rule_dict['user'] == "all") and
-               (self.enterprise.lower() == "/admin/enterprises/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all")):
+               (self.performedby.lower() == self.enterprise.lower()+"/users/"+rule_dict['user'] or rule_dict['user'] == "all" or (self.performedby.lower() == "system" and rule_dict['user'].lower() =="system" )) and
+               (self.enterprise.lower() == "/admin/enterprises/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all") or (self.performedby.lower() == "system" and rule_dict['user'].lower() =="system" )):
                     # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
                 print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
                 try:                    
                     # Obtain recipient addresses according to notification rule 
                     recipients_list = self.obtain_recipient_address(str(rule_dict['mailto']),self.performedby,self.enterprise)
                     for recipient in recipients_list:
-                        send_email(str(recipient),self)
+                        # send mail (destination address, event , inform details)
+                        send_email(str(recipient),self,str(rule_dict['detail']))
                 except Exception, e:
                     print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
     
@@ -137,7 +138,7 @@ class Event(object):
                     recipients_list.append(user['email'])
             return recipients_list
         except Exception, e:
-            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when obtaining user list of users within enterprise with informed role: ", (str(e))
+            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when obtaining list of users within enterprise with informed role: ", (str(e))
         finally:
             c.close
 

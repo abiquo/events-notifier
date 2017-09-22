@@ -38,13 +38,13 @@ def load_api_config():
     config = ConfigParser.ConfigParser()
     config.read('notifier.cfg')
     
-    api_ip = config.get('abiquo', 'api_ip')
+    api_url = config.get('abiquo', 'api_url')
     api_user = config.get('abiquo', 'api_user')
     api_pwd = config.get('abiquo', 'api_pwd')
     api_port = config.get('abiquo', 'api_port')
     stream_path = str(config.get('abiquo', 'stream_path'))
     
-    return (api_ip, api_user, api_pwd, api_port, stream_path)
+    return (api_url, api_user, api_pwd, api_port, stream_path)
 
 def load_ruleeditor_config():
     import ConfigParser

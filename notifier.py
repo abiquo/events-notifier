@@ -70,8 +70,8 @@ def send_email(to, event_to_notify,detailed):
 
     # Obtain user email address from API call
 def obtain_user_details(user_url):
-    api_ip,api_user,api_pwd,api_port,_ = load_api_config()
-    url = "http://%s:%s/api/%s" % (api_ip, api_port, user_url)
+    api_url,api_user,api_pwd,api_port,_ = load_api_config()
+    url = "%s:%s/api/%s" % (api_url, api_port, user_url)
     user_pwd = '%s:%s' % (api_user, api_pwd)
     try:
         response = StringIO.StringIO()

@@ -102,8 +102,8 @@ class Event(object):
 
     # Obtain user email address from API call
     def obtain_user_address(self,user_url):
-        api_ip,api_user,api_pwd,api_port,_ = load_api_config()
-        url = "http://%s:%s/api/%s" % (api_ip, api_port, user_url)
+        api_url,api_user,api_pwd,api_port,_ = load_api_config()
+        url = "%s:%s/api/%s" % (api_url, api_port, user_url)
         user_pwd = '%s:%s' % (api_user, api_pwd)
         try:
             response = StringIO.StringIO()
@@ -121,8 +121,8 @@ class Event(object):
 
     # Obtain all user email addresses from users which belongs to "object" enterprise and have concrete role 
     def obtain_users_enterprise_role(self,enterprise_url,role):
-        api_ip,api_user,api_pwd,api_port,_ = load_api_config()
-        url = "http://%s:%s/api/%s/users/" % (api_ip, api_port, enterprise_url)
+        api_url,api_user,api_pwd,api_port,_ = load_api_config()
+        url = "%s:%s/api/%s/users/" % (api_url, api_port, enterprise_url)
         user_pwd = '%s:%s' % (api_user, api_pwd)
         try:
             response = StringIO.StringIO()

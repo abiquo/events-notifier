@@ -40,7 +40,7 @@ def on_receive(data):
 if __name__ == '__main__':
     
     # Load required properties from notifier.cfg
-    api_ip,api_user,api_pwd,api_port,stream_path = load_api_config()
+    api_url,api_user,api_pwd,api_port,stream_path = load_api_config()
     retry_interval = load_main_config()
     rule_editor_enabled,rule_editor_port = load_ruleeditor_config()
  
@@ -59,10 +59,10 @@ if __name__ == '__main__':
 
     while not aborted:    
         try:
-            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: Connection to %s:%s API Outbound established" % (api_ip,api_port)
+            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: Connection to %s:%s API Outbound established" % (api_url,api_port)
             stream_connection = pycurl.Curl()
             stream_connection.setopt(pycurl.USERPWD, "%s:%s" % (api_user, api_pwd))
-            stream_connection.setopt(pycurl.URL, "http://%s:%s%s" % (api_ip,api_port,stream_path))
+            stream_connection.setopt(pycurl.URL, "%s:%s%s" % (api_url,api_port,stream_path))
             # Check if pycurl connection is hanged
             # If speed is 1 byte within 7200 seconds connection will be considered as
             # hanged and a reconnection will be thrown

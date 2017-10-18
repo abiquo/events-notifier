@@ -2,7 +2,7 @@
 
 #       The Abiquo Platform
 #       Cloud management application for hybrid clouds
-#       Copyright (C) 2008-2013 - Abiquo Holding S.L. 
+#       Copyright (C) 2008-2013 - Abiquo Holding S.L.
 #
 #       This application is free software; you can redistribute it and/or
 #       modify it under the terms of the GNU LESSER GENERAL PUBLIC
@@ -33,9 +33,9 @@ def send_email(to, event_to_notify,detailed):
     # Exit if no email address to send
     if not to:
         return
-    
+
     content = event_to_html(event_to_notify,detailed)
-    
+
     FROM, SUBJECT, IP, PORT = load_email_config()
 
     # Create message container - the correct MIME type is multipart/alternative.
@@ -80,22 +80,24 @@ def obtain_user_details(user_url):
         c.setopt(pycurl.URL, str(url))
         c.setopt(pycurl.HTTPHEADER, ['Accept: application/vnd.abiquo.user+json']) # JSON response from API
         c.setopt(pycurl.USERPWD, user_pwd)
+        if skip_ssl_peer_verify == true:
+            c.setopt(pycurl.SSL_VERIFYPEER, 0 )
         c.perform()
-        return str(json.loads(response.getvalue())['email']),str(json.loads(response.getvalue())['name']),str(json.loads(response.getvalue())['surname']),str(json.loads(response.getvalue())['nick']) 
+        return str(json.loads(response.getvalue())['email']),str(json.loads(response.getvalue())['name']),str(json.loads(response.getvalue())['surname']),str(json.loads(response.getvalue())['nick'])
     except Exception, e:
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when obtaining user details from API: %s",str(e))
     finally:
         c.close
 
 def event_to_html(event,detailed):
-    
+
     #########################
     ### Get event details ###
     #########################
-    
+
     # Timestamp returned by API Outbound is in Java millisecond format, we need to divide by 1000
     timestamp_to_datestring = datetime.datetime.fromtimestamp(event.get_timestamp()/1000).strftime('%Y-%m-%d %H:%M:%S')
-    
+
     # Check if event has been performed by SYSTEM or an user
     if event.get_performedby()=='SYSTEM':
         user_name = 'SYSTEM'
@@ -105,19 +107,19 @@ def event_to_html(event,detailed):
     # If event has been performed by an user, get its details by doing an API call
     elif event.get_performedby() and event.get_performedby()!='SYSTEM':
         user_email,user_name,user_surname,user_nick = obtain_user_details(event.get_performedby())
-    # Make "beauty" severity text depending if is INFO,WARN or ERROR 
+    # Make "beauty" severity text depending if is INFO,WARN or ERROR
     if event.get_severity()=='INFO':
-        severity_row="""<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><span class="label label-warning" style="display: inline-block;padding: 2px 4px;font-size: 11.844px;font-weight: bold;line-height: 14px;color: #fff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);white-space: nowrap;vertical-align: baseline;background-color: #0000CD;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px">INFO</span></td>"""    
+        severity_row="""<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><span class="label label-warning" style="display: inline-block;padding: 2px 4px;font-size: 11.844px;font-weight: bold;line-height: 14px;color: #fff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);white-space: nowrap;vertical-align: baseline;background-color: #0000CD;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px">INFO</span></td>"""
     elif event.get_severity()=='WARN':
-        severity_row="""<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><span class="label label-warning" style="display: inline-block;padding: 2px 4px;font-size: 11.844px;font-weight: bold;line-height: 14px;color: #fff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);white-space: nowrap;vertical-align: baseline;background-color: #FFA500;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px">WARNING</span></td>"""        
+        severity_row="""<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><span class="label label-warning" style="display: inline-block;padding: 2px 4px;font-size: 11.844px;font-weight: bold;line-height: 14px;color: #fff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);white-space: nowrap;vertical-align: baseline;background-color: #FFA500;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px">WARNING</span></td>"""
     else:
         severity_row="""<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top;border-top: 1px solid #ddd"><span class="label label-warning" style="display: inline-block;padding: 2px 4px;font-size: 11.844px;font-weight: bold;line-height: 14px;color: #fff;text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);white-space: nowrap;vertical-align: baseline;background-color: #FF0000;-webkit-border-radius: 3px;-moz-border-radius: 3px;border-radius: 3px">ERROR</span></td>"""
-    
+
     #############################
     ### Generate HTML message ###
     #############################
     content = ""
-    
+
     content += """
         <html>
             <head>
@@ -127,7 +129,7 @@ def event_to_html(event,detailed):
                 <p style="margin: 0 0 10px"/><div style="padding: 5px 5px;width: 95%px;margin-right: auto;margin-left: auto;min-height: 20px;margin-bottom: 20px;background-color: #f5f5f5;border: 1px solid #e3e3e3;-webkit-border-radius: 6px;-moz-border-radius: 6px;border-radius: 6px;-webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);-moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05)">
                 <p style="margin: 0 0 10px;text-align: center"/><h1 style="margin: 10px 0;font-family: inherit;font-weight: bold;line-height: 20px;color: inherit;text-rendering: optimizelegibility;font-size: 24px">Abiquo action notification</h1>
                 <br><span>The action was:<br><br></span>
-        
+
                 <div>
                     <table style="max-width: 100%;background-color: transparent;border-collapse: collapse;border-spacing: 0;width: 100%;margin-bottom: 20px">
                         <tbody>
@@ -160,9 +162,7 @@ def event_to_html(event,detailed):
             content += """<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top">"""+key+"""</td>"""
             content += """<td style="padding: 4px 5px;line-height: 20px;text-align: left;vertical-align: top">"""+value+"""</td>"""
             content += "</tr>"
-    
-    content += """</tbody></table></div></body></html>"""
-    
-    return content
 
-    
+    content += """</tbody></table></div></body></html>"""
+
+    return content

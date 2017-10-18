@@ -2,7 +2,7 @@
 
 #       The Abiquo Platform
 #       Cloud management application for hybrid clouds
-#       Copyright (C) 2008-2013 - Abiquo Holding S.L. 
+#       Copyright (C) 2008-2013 - Abiquo Holding S.L.
 #
 #       This application is free software; you can redistribute it and/or
 #       modify it under the terms of the GNU LESSER GENERAL PUBLIC
@@ -21,7 +21,7 @@
 
 def load_email_config():
     import ConfigParser
-    
+
     config = ConfigParser.ConfigParser()
     config.read('notifier.cfg')
 
@@ -29,41 +29,41 @@ def load_email_config():
     s = config.get('email', 'subject')
     ip = config.get('email', 'smtp_ip')
     port = config.get('email', 'smtp_port')
-    
+
     return (f, s, ip, port)
 
 def load_api_config():
     import ConfigParser
-    
+
     config = ConfigParser.ConfigParser()
     config.read('notifier.cfg')
-    
+
     api_url = config.get('abiquo', 'api_url')
     api_user = config.get('abiquo', 'api_user')
     api_pwd = config.get('abiquo', 'api_pwd')
     api_port = config.get('abiquo', 'api_port')
+    ssl_verify = config.get('abiquo', 'skip_ssl_peer_verify')
     stream_path = str(config.get('abiquo', 'stream_path'))
-    
+
     return (api_url, api_user, api_pwd, api_port, stream_path)
 
 def load_ruleeditor_config():
     import ConfigParser
-    
+
     config = ConfigParser.ConfigParser()
     config.read('notifier.cfg')
-    
+
     rule_editor_enabled = int(config.get('ruleeditor', 'enabled'))
     rule_editor_port = int(config.get('ruleeditor', 'rule_editor_port'))
-    
+
     return (rule_editor_enabled, rule_editor_port)
 
 def load_main_config():
     import ConfigParser
-    
+
     config = ConfigParser.ConfigParser()
     config.read('notifier.cfg')
-    
+
     retry_interval = int(config.get('main', 'retry_interval'))
-    
+
     return (retry_interval)
-    

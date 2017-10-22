@@ -29,8 +29,11 @@ def load_email_config():
     s = config.get('email', 'subject')
     ip = config.get('email', 'smtp_ip')
     port = config.get('email', 'smtp_port')
+    tsl = config.get('email','tsl')
+    user = config.get('email','smtp_user')
+    password = config.get('email','smtp_password')
 
-    return (f, s, ip, port)
+    return (f, s, ip, port, tls, user, password)
 
 def load_api_config():
     import ConfigParser
@@ -42,10 +45,11 @@ def load_api_config():
     api_user = config.get('abiquo', 'api_user')
     api_pwd = config.get('abiquo', 'api_pwd')
     api_port = config.get('abiquo', 'api_port')
-    ssl_verify = config.get('abiquo', 'skip_ssl_peer_verify')
+    ssl_verify_disabled = config.get('abiquo', 'skip_ssl_peer_verify')
     stream_path = str(config.get('abiquo', 'stream_path'))
 
-    return (api_url, api_user, api_pwd, api_port, stream_path)
+
+    return (api_url, api_user, api_pwd, api_port, stream_path, ssl_verify_disabled)
 
 def load_ruleeditor_config():
     import ConfigParser

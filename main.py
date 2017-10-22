@@ -22,6 +22,9 @@
 from time import sleep
 import datetime
 import pycurl
+import logging
+import sys
+import signal
 from eventing import Event
 from rules import update_rule_list
 from ruleeditor import ruleEditor
@@ -30,17 +33,21 @@ from propertyloader import *
 # Receive data event
 def on_receive(data):
     # If we received an event
-
     if "timestamp" in data:
         # Instantiate object. (We strip 5 first characters as are not JSON format)
+        logging.debug("Received event %s" % (data))
         event = Event(data[5:].strip())
         # Check if event should be notified and do if so
         event.check_event()
 
 if __name__ == '__main__':
-
+    logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(levelname)s %(message)s',
+                    filename='./app.log',
+                    filemode='w')
+    logging.info("App started.")
     # Load required properties from notifier.cfg
-    api_url,api_user,api_pwd,api_port,stream_path = load_api_config()
+    api_url,api_user,api_pwd,api_port,stream_path,ssl_verify_disabled = load_api_config()
     retry_interval = load_main_config()
     rule_editor_enabled,rule_editor_port = load_ruleeditor_config()
 
@@ -53,13 +60,13 @@ if __name__ == '__main__':
             rule_editor = ruleEditor
             rule_editor.thread_webserver(rule_editor_port)
         except Exception, e:
-            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when loading Rule editor web app"
+            logging.error("An error ocurred when loading Rule editor web app")
 
     aborted = False
 
+    logging.info("Establishing connection to API Outbound at %s:%s%s " % (api_url,api_port,stream_path))
     while not aborted:
         try:
-            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: Connection to %s:%s API Outbound established" % (api_url,api_port)
             stream_connection = pycurl.Curl()
             stream_connection.setopt(pycurl.USERPWD, "%s:%s" % (api_user, api_pwd))
             stream_connection.setopt(pycurl.URL, "%s:%s%s" % (api_url,api_port,stream_path))
@@ -69,14 +76,15 @@ if __name__ == '__main__':
             stream_connection.setopt(pycurl.LOW_SPEED_LIMIT, 1)
             stream_connection.setopt(pycurl.LOW_SPEED_TIME, 7200)
             stream_connection.setopt(pycurl.WRITEFUNCTION, on_receive)
-            if skip_ssl_peer_verify == true:
+            if ssl_verify_disabled:
                 stream_connection.setopt(pycurl.SSL_VERIFYPEER, 0 )
             stream_connection.perform()
 
             if stream_connection.getinfo(pycurl.HTTP_CODE) != 200:
-                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred connecting to stream, retrying in %s seconds" % (retry_interval)
+                logging.error(" An error occurred [ %s ] connecting to stream, retrying in %s seconds" % (stream_connection.getinfo(pycurl.RESPONSE_CODE), retry_interval))
                 sleep(retry_interval)
 
         except Exception, e:
-            print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: Connection from server has been terminated or timed out, retrying in %s seconds" % (retry_interval)
+            logging.error("Connection from server has been terminated or timed out, retrying in %s seconds" % (retry_interval))
+            logging.debug("%s" % (e))
             sleep(retry_interval)

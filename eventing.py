@@ -27,6 +27,7 @@ import StringIO
 import json
 import pycurl
 
+
 ### Example data from API Outbound
 # {"timestamp":"1370903626167","user":"/admin/enterprises/1/users/1","enterprise":"/admin/enterprises/1","severity":"ERROR","source":"ABIQUO_SERVER","action":"DELETE","type":"DATACENTER","entityIdentifier":"/admin/datacenters/1","details":{"detail":[{"@key":"MESSAGE","$":"Cannot delete datacenter with virtual datacenters associated"},{"@key":"SCOPE","$":"DATACENTER"},{"@key":"CODE","$":"DC-6"}]}}
 
@@ -78,7 +79,8 @@ class Event(object):
                (self.performedby.lower() == self.enterprise.lower()+"/users/"+rule_dict['user'] or rule_dict['user'] == "all" or (self.performedby.lower() == "system" and rule_dict['user'].lower() =="system" )) and
                (self.enterprise.lower() == "/admin/enterprises/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all") or (self.performedby.lower() == "system" and rule_dict['user'].lower() =="system" )):
                     # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
-                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
+                logging.info("New event notification mail enqueued")
+#                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
                 try:
                     # Obtain recipient addresses according to notification rule
                     recipients_list = self.obtain_recipient_address(str(rule_dict['mailto']),self.performedby,self.enterprise)
@@ -86,7 +88,8 @@ class Event(object):
                         # send mail (destination address, event , inform details)
                         send_email(str(recipient),self,str(rule_dict['detail']))
                 except Exception, e:
-                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
+                    logging.error("An error ocurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
+#                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
 
     # Computes if the rule is made to notify an email address, the user which performed the action or an enterprise role group membership
     def obtain_recipient_address(self,rule_cfg_value,user_url,enterprise_url):

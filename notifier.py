@@ -33,15 +33,12 @@ def send_email(to, event_to_notify,detailed):
     if not to:
         return
 
-    logging.debug("A")
     logging.debug(event_to_notify)
-    logging.debug("AB")
     logging.debug(detailed)
     content = event_to_html(event_to_notify,detailed)
 
-    logging.debug("B")
     logging.debug("Trying to get config")
-    FROM, SUBJECT, IP, PORT, TLS, USER, PASSWORD = load_email_config()
+    FROM, SUBJECT, IP, PORT, TLS, SSL, USER, PASSWORD = load_email_config()
 
     # Create message container - the correct MIME type is multipart/alternative.
     msg = MIMEMultipart('alternative')
@@ -63,7 +60,16 @@ def send_email(to, event_to_notify,detailed):
 
     # Send the message via local SMTP server.
     try:
-        s = smtplib.SMTP_SSL(IP, PORT)
+        logging.debug("TLS ENABLED %s" % TLS )
+        logging.debug("SSLENABLED %s" % SSL )
+        if SSL == 'True':
+            logging.debug("SSL ENABLED")
+            s = smtplib.SMTP_SSL(IP, PORT)
+        else:
+            s = smtplib.SMTP(IP, PORT)
+        if TLS == 'True':
+            logging.debug("TLS ENABLED %s" % TLS )
+            s.starttls()
         # sendmail function takes 3 arguments: sender's address, recipient's address
         # and message to send - here it is sent as one string.
         s.login(USER, PASSWORD)

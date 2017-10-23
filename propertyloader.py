@@ -30,10 +30,11 @@ def load_email_config():
     ip = config.get('email', 'smtp_ip')
     port = config.get('email', 'smtp_port')
     tls = config.get('email','smtp_tls')
+    ssl = config.get('email','smtp_ssl')
     user = config.get('email','smtp_user')
     password = config.get('email','smtp_password')
 
-    return (f, s, ip, port, tls, user, password)
+    return (f, s, ip, port, tls, ssl, user, password)
 
 def load_api_config():
     import ConfigParser

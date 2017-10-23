@@ -23,20 +23,25 @@ import datetime
 import smtplib
 import pycurl
 import StringIO
+import logging
 from propertyloader import load_api_config,load_email_config
 import json
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 def send_email(to, event_to_notify,detailed):
-
-    # Exit if no email address to send
     if not to:
         return
 
+    logging.debug("A")
+    logging.debug(event_to_notify)
+    logging.debug("AB")
+    logging.debug(detailed)
     content = event_to_html(event_to_notify,detailed)
 
-    FROM, SUBJECT, IP, PORT = load_email_config()
+    logging.debug("B")
+    logging.debug("Trying to get config")
+    FROM, SUBJECT, IP, PORT, TLS, USER, PASSWORD = load_email_config()
 
     # Create message container - the correct MIME type is multipart/alternative.
     msg = MIMEMultipart('alternative')
@@ -58,9 +63,10 @@ def send_email(to, event_to_notify,detailed):
 
     # Send the message via local SMTP server.
     try:
-        s = smtplib.SMTP(IP, PORT)
+        s = smtplib.SMTP_SSL(IP, PORT)
         # sendmail function takes 3 arguments: sender's address, recipient's address
         # and message to send - here it is sent as one string.
+        s.login(USER, PASSWORD)
         s.sendmail(FROM,to, msg.as_string())
         s.quit()
     except smtplib.SMTPException:
@@ -70,9 +76,10 @@ def send_email(to, event_to_notify,detailed):
 
     # Obtain user email address from API call
 def obtain_user_details(user_url):
-    api_url,api_user,api_pwd,api_port,_ = load_api_config()
+    api_url,api_user,api_pwd,api_port,path,skip_ssl_peer_verify = load_api_config()
     url = "%s:%s/api/%s" % (api_url, api_port, user_url)
     user_pwd = '%s:%s' % (api_user, api_pwd)
+    logging.debug("Accessing %s with creds %s" % (url,user_pwd))
     try:
         response = StringIO.StringIO()
         c = pycurl.Curl()
@@ -80,12 +87,12 @@ def obtain_user_details(user_url):
         c.setopt(pycurl.URL, str(url))
         c.setopt(pycurl.HTTPHEADER, ['Accept: application/vnd.abiquo.user+json']) # JSON response from API
         c.setopt(pycurl.USERPWD, user_pwd)
-        if skip_ssl_peer_verify == true:
+        if skip_ssl_peer_verify == True:
             c.setopt(pycurl.SSL_VERIFYPEER, 0 )
         c.perform()
         return str(json.loads(response.getvalue())['email']),str(json.loads(response.getvalue())['name']),str(json.loads(response.getvalue())['surname']),str(json.loads(response.getvalue())['nick'])
     except Exception, e:
-        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when obtaining user details from API: %s",str(e))
+        logging.error("ERROR: An error occurred when obtaining user details from API: %s",str(e))
     finally:
         c.close
 

@@ -26,12 +26,18 @@ from propertyloader import load_api_config
 import StringIO
 import json
 import pycurl
+import logging
 
 
 ### Example data from API Outbound
 # {"timestamp":"1370903626167","user":"/admin/enterprises/1/users/1","enterprise":"/admin/enterprises/1","severity":"ERROR","source":"ABIQUO_SERVER","action":"DELETE","type":"DATACENTER","entityIdentifier":"/admin/datacenters/1","details":{"detail":[{"@key":"MESSAGE","$":"Cannot delete datacenter with virtual datacenters associated"},{"@key":"SCOPE","$":"DATACENTER"},{"@key":"CODE","$":"DC-6"}]}}
 
 class Event(object):
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s %(message)s',
+                        filename='./app.log',
+                        filemode='w')
+
     def __init__(self,event_data):
         data = json.loads(event_data)
         self.severity = data['severity']
@@ -68,11 +74,16 @@ class Event(object):
         return self.desc
 
     def check_event(self):
+        logging.debug("Received event to evaluate")
         # When an event is received, we check rule by rule is needs to be notified
         rule_list = get_rule_list()
         for rule in rule_list:
         # Rule list is in dictionary/json format
             rule_dict = json.loads(rule)
+            logging.debug("Severity     => EVENT: %s == RULE: %s or RULE: %s == all => result: %s" % (self.severity.lower(),rule_dict['severity'].lower(),rule_dict['severity'].lower(),(self.severity.lower() == rule_dict['severity'].lower() or rule_dict['severity'].lower() == "all")))
+            logging.debug("Action       => EVENT: %s == RULE: %s or RULE: %s == all => result: %s" % (self.action.lower(),rule_dict['action'].lower(),rule_dict['action'].lower(),(self.action.lower() == rule_dict['action'].lower() or rule_dict['action'].lower() == "all")))
+            logging.debug("entitytype   => EVENT: %s == RULE: %s or RULE: %s == all => result: %s" % (self.entitytype.lower(),rule_dict['entity'].lower(),rule_dict['entity'].lower(),(self.entitytype.lower() == rule_dict['entity'].lower() or rule_dict['entity'].lower() == "all")))
+
             if ((self.severity.lower() == rule_dict['severity'].lower() or rule_dict['severity'].lower() == "all") and
                (self.action.lower() == rule_dict['action'].lower() or rule_dict['action'].lower() == "all") and
                (self.entitytype.lower() == rule_dict['entity'].lower() or rule_dict['entity'].lower() == "all") and
@@ -81,14 +92,14 @@ class Event(object):
                     # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
                 logging.info("New event notification mail enqueued")
 #                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
-                try:
+#                try:
                     # Obtain recipient addresses according to notification rule
-                    recipients_list = self.obtain_recipient_address(str(rule_dict['mailto']),self.performedby,self.enterprise)
-                    for recipient in recipients_list:
+                recipients_list = self.obtain_recipient_address(str(rule_dict['mailto']),self.performedby,self.enterprise)
+                for recipient in recipients_list:
                         # send mail (destination address, event , inform details)
-                        send_email(str(recipient),self,str(rule_dict['detail']))
-                except Exception, e:
-                    logging.error("An error ocurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
+                    send_email(str(recipient),self,str(rule_dict['detail']))
+#                except Exception, e:
+#                    logging.error("An error ocurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
 #                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
 
     # Computes if the rule is made to notify an email address, the user which performed the action or an enterprise role group membership

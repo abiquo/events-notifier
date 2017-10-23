@@ -29,7 +29,7 @@ def load_email_config():
     s = config.get('email', 'subject')
     ip = config.get('email', 'smtp_ip')
     port = config.get('email', 'smtp_port')
-    tsl = config.get('email','tsl')
+    tls = config.get('email','smtp_tls')
     user = config.get('email','smtp_user')
     password = config.get('email','smtp_password')
 

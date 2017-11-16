@@ -77,6 +77,7 @@ if __name__ == '__main__':
             stream_connection.setopt(pycurl.LOW_SPEED_TIME, 7200)
             stream_connection.setopt(pycurl.WRITEFUNCTION, on_receive)
             if ssl_verify_disabled:
+  		logging.info("SSL verify disabled")
                 stream_connection.setopt(pycurl.SSL_VERIFYPEER, 0 )
             stream_connection.perform()
 

@@ -93,7 +93,7 @@ def obtain_user_details(user_url):
         c.setopt(pycurl.URL, str(url))
         c.setopt(pycurl.HTTPHEADER, ['Accept: application/vnd.abiquo.user+json']) # JSON response from API
         c.setopt(pycurl.USERPWD, user_pwd)
-        if skip_ssl_peer_verify == True:
+        if skip_ssl_peer_verify == True or skip_ssl_peer_verify == "True":
             c.setopt(pycurl.SSL_VERIFYPEER, 0 )
         c.perform()
         return str(json.loads(response.getvalue())['email']),str(json.loads(response.getvalue())['name']),str(json.loads(response.getvalue())['surname']),str(json.loads(response.getvalue())['nick'])

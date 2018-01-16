@@ -90,6 +90,17 @@ class Event(object):
                (self.performedby.lower() == self.enterprise.lower()+"/users/"+rule_dict['user'] or rule_dict['user'] == "all" or (self.performedby.lower() == "system" and rule_dict['user'].lower() =="system" )) and
                (self.enterprise.lower() == "/admin/enterprises/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all") or (self.performedby.lower() == "system" and rule_dict['user'].lower() =="system" )):
                     # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
+
+                if 'CLONED_VM_MACHINE_NAME' in self.desc:
+                    self.desc['SOURCE_HOST'] = self.desc['CLONED_VM_MACHINE_NAME']
+                    self.desc.pop('CLONED_VM_MACHINE_NAME')
+                    self.desc['DESTINATION_HOST'] = self.desc['MACHINE_NAME']
+                    self.desc.pop('MACHINE_NAME')
+
+
+                # Event example to filter Mediaset hosts
+#                {"timestamp":1512279338566,"user":"SYSTEM","enterprise":"SYSTEM","severity":"WARN","source":"ABIQUO_SERVER","action":"CHECK_STATE","type":"MACHINE","entityIdentifier":"","details":{"MACHINE_NAME":"mediaset12.brs.vmlocal","MACHINE_IP":"172.24.189.138","HYPERVISOR_TYPE":"VMware vCenter","MACHINE_OLD_STATE":"STOPPED","MACHINE_STATE":"MANAGED"}}
+
                 logging.info("New event notification mail enqueued")
 #                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
 #                try:

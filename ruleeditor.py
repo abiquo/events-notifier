@@ -32,10 +32,9 @@ class ruleEditor(BaseHTTPRequestHandler):
         
         # URL Parameters
         params = urlparse.parse_qs(self.path)
-
         # Check if URL has action and data parameters
-        if params.has_key("action"):
-            if params["action"][0] == "delete":
+        if params.has_key("/action"):
+            if params["/action"][0] == "delete":
                 try:
 		    f = open("rules.cfg","r")
 		    working = open("rules_tmp.cfg", "w")
@@ -122,7 +121,7 @@ class ruleEditor(BaseHTTPRequestHandler):
 		    except ValueError:
 			print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: rules.cfg files is not well formated. Review it to fit format"
                         return 0
-                    self.wfile.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="./?modify&action=delete&data=%s"><button type="button" class="btn btn-danger">Delete</button></a></td></tr>' % (str(rule_dict['mailto']),str(rule_dict['action']),str(rule_dict['entity']),str(rule_dict['severity']),str(rule_dict['user']),str(rule_dict['enterprise']),str(rule_dict['detail']),line_number))
+                    self.wfile.write('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td><td><a href="action=delete&data=%s"><button type="button" class="btn btn-danger">Delete</button></a></td></tr>' % (str(rule_dict['mailto']),str(rule_dict['action']),str(rule_dict['entity']),str(rule_dict['severity']),str(rule_dict['user']),str(rule_dict['enterprise']),str(rule_dict['detail']),line_number))
                     line_number+=1
                     
         except IOError:

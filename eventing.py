@@ -2,7 +2,7 @@
 
 #       The Abiquo Platform
 #       Cloud management application for hybrid clouds
-#       Copyright (C) 2008-2013 - Abiquo Holding S.L. 
+#       Copyright (C) 2008-2013 - Abiquo Holding S.L.
 #
 #       This application is free software; you can redistribute it and/or
 #       modify it under the terms of the GNU LESSER GENERAL PUBLIC
@@ -26,11 +26,18 @@ from propertyloader import load_api_config
 import StringIO
 import json
 import pycurl
+import logging
+
 
 ### Example data from API Outbound
 # {"timestamp":"1370903626167","user":"/admin/enterprises/1/users/1","enterprise":"/admin/enterprises/1","severity":"ERROR","source":"ABIQUO_SERVER","action":"DELETE","type":"DATACENTER","entityIdentifier":"/admin/datacenters/1","details":{"detail":[{"@key":"MESSAGE","$":"Cannot delete datacenter with virtual datacenters associated"},{"@key":"SCOPE","$":"DATACENTER"},{"@key":"CODE","$":"DC-6"}]}}
 
 class Event(object):
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s %(message)s',
+                        filename='./app.log',
+                        filemode='w')
+
     def __init__(self,event_data):
         data = json.loads(event_data)
         self.severity = data['severity']
@@ -41,53 +48,60 @@ class Event(object):
         self.entityurl = data['entityIdentifier']
         self.action = data['action']
         self.desc = data['details']
-    
+
     def get_severity(self):
         return self.severity
-    
+
     def get_timestamp(self):
         return self.timestamp
-    
+
     def get_performedby(self):
         return self.performedby
-    
+
     def get_enterprise(self):
         return self.enterprise
-    
+
     def get_entitytype(self):
         return self.entitytype
-    
+
     def get_entityurl(self):
         return self.entityurl
-    
+
     def get_action(self):
         return self.action
-    
+
     def get_description(self):
         return self.desc
 
     def check_event(self):
+        logging.debug("Received event to evaluate")
         # When an event is received, we check rule by rule is needs to be notified
         rule_list = get_rule_list()
         for rule in rule_list:
         # Rule list is in dictionary/json format
             rule_dict = json.loads(rule)
-            if ((self.severity.lower() == rule_dict['severity'].lower() or rule_dict['severity'].lower() == "all") and 
+            logging.debug("Severity     => EVENT: %s == RULE: %s or RULE: %s == all => result: %s" % (self.severity.lower(),rule_dict['severity'].lower(),rule_dict['severity'].lower(),(self.severity.lower() == rule_dict['severity'].lower() or rule_dict['severity'].lower() == "all")))
+            logging.debug("Action       => EVENT: %s == RULE: %s or RULE: %s == all => result: %s" % (self.action.lower(),rule_dict['action'].lower(),rule_dict['action'].lower(),(self.action.lower() == rule_dict['action'].lower() or rule_dict['action'].lower() == "all")))
+            logging.debug("entitytype   => EVENT: %s == RULE: %s or RULE: %s == all => result: %s" % (self.entitytype.lower(),rule_dict['entity'].lower(),rule_dict['entity'].lower(),(self.entitytype.lower() == rule_dict['entity'].lower() or rule_dict['entity'].lower() == "all")))
+
+            if ((self.severity.lower() == rule_dict['severity'].lower() or rule_dict['severity'].lower() == "all") and
                (self.action.lower() == rule_dict['action'].lower() or rule_dict['action'].lower() == "all") and
                (self.entitytype.lower() == rule_dict['entity'].lower() or rule_dict['entity'].lower() == "all") and
                (self.performedby.lower() == self.enterprise.lower()+"/users/"+rule_dict['user'] or rule_dict['user'] == "all" or (self.performedby.lower() == "system" and rule_dict['user'].lower() =="system" )) and
                (self.enterprise.lower() == "/admin/enterprises/"+rule_dict['enterprise'] or rule_dict['enterprise'] == "all") or (self.performedby.lower() == "system" and rule_dict['user'].lower() =="system" )):
                     # If performedby user rule filter is enabled an enterprise needs to be assigned to the rule too
-                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
-                try:                    
-                    # Obtain recipient addresses according to notification rule 
-                    recipients_list = self.obtain_recipient_address(str(rule_dict['mailto']),self.performedby,self.enterprise)
-                    for recipient in recipients_list:
+                logging.info("New event notification mail enqueued")
+#                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
+#                try:
+                    # Obtain recipient addresses according to notification rule
+                recipients_list = self.obtain_recipient_address(str(rule_dict['mailto']),self.performedby,self.enterprise)
+                for recipient in recipients_list:
                         # send mail (destination address, event , inform details)
-                        send_email(str(recipient),self,str(rule_dict['detail']))
-                except Exception, e:
-                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
-    
+                    send_email(str(recipient),self,str(rule_dict['detail']))
+#                except Exception, e:
+#                    logging.error("An error ocurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
+#                    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when sending notifications to %s: %s" %(rule_dict['mailto'],str(e)))
+
     # Computes if the rule is made to notify an email address, the user which performed the action or an enterprise role group membership
     def obtain_recipient_address(self,rule_cfg_value,user_url,enterprise_url):
         recipients_list = []
@@ -112,6 +126,8 @@ class Event(object):
             c.setopt(pycurl.URL, str(url))
             c.setopt(pycurl.HTTPHEADER, ['Accept: application/vnd.abiquo.user+json']) # JSON response from API
             c.setopt(pycurl.USERPWD, user_pwd)
+            if skip_ssl_peer_verify:
+                c.setopt(pycurl.SSL_VERIFYPEER, 0 )
             c.perform()
             return str(json.loads(response.getvalue())['email'])
         except Exception, e:
@@ -119,7 +135,7 @@ class Event(object):
         finally:
             c.close
 
-    # Obtain all user email addresses from users which belongs to "object" enterprise and have concrete role 
+    # Obtain all user email addresses from users which belongs to "object" enterprise and have concrete role
     def obtain_users_enterprise_role(self,enterprise_url,role):
         api_url,api_user,api_pwd,api_port,_ = load_api_config()
         url = "%s:%s/api/%s/users/" % (api_url, api_port, enterprise_url)
@@ -131,6 +147,8 @@ class Event(object):
             c.setopt(pycurl.URL, str(url))
             c.setopt(pycurl.HTTPHEADER, ['Accept: application/vnd.abiquo.usersWithRoles+json']) # JSON response from API
             c.setopt(pycurl.USERPWD, user_pwd)
+            if skip_ssl_peer_verify == true:
+                c.setopt(pycurl.SSL_VERIFYPEER, 0 )
             c.perform()
             recipients_list = []
             for user in json.loads(response.getvalue())['collection']:
@@ -141,4 +159,3 @@ class Event(object):
             print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - ERROR: An error occurred when obtaining list of users within enterprise with informed role: ", (str(e))
         finally:
             c.close
-

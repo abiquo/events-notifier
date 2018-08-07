@@ -97,10 +97,6 @@ class Event(object):
                     self.desc['DESTINATION_HOST'] = self.desc['MACHINE_NAME']
                     self.desc.pop('MACHINE_NAME')
 
-
-                # Event example to filter Mediaset hosts
-#                {"timestamp":1512279338566,"user":"SYSTEM","enterprise":"SYSTEM","severity":"WARN","source":"ABIQUO_SERVER","action":"CHECK_STATE","type":"MACHINE","entityIdentifier":"","details":{"MACHINE_NAME":"mediaset12.brs.vmlocal","MACHINE_IP":"172.24.189.138","HYPERVISOR_TYPE":"VMware vCenter","MACHINE_OLD_STATE":"STOPPED","MACHINE_STATE":"MANAGED"}}
-
                 logging.info("New event notification mail enqueued")
 #                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
 #                try:

@@ -96,7 +96,11 @@ class Event(object):
                     self.desc.pop('CLONED_VM_MACHINE_NAME')
                     self.desc['DESTINATION_HOST'] = self.desc['MACHINE_NAME']
                     self.desc.pop('MACHINE_NAME')
-
+                    
+                if self.action == 'CHECK_STATE' and not self.desc['MACHINE_NAME'].startswith("mediaset"):
+                        logging.info("Discarding event from other enterprise than mediaset")
+                        break
+                
                 logging.info("New event notification mail enqueued")
 #                print datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+" - INFO: New event notification mail enqueued"
 #                try:

@@ -46,7 +46,7 @@ def load_api_config():
     api_user = config.get('abiquo', 'api_user')
     api_pwd = config.get('abiquo', 'api_pwd')
     api_port = config.get('abiquo', 'api_port')
-    ssl_verify_disabled = config.get('abiquo', 'skip_ssl_peer_verify')
+    ssl_verify_disabled = config.getboolean('abiquo', 'skip_ssl_peer_verify')
     stream_path = str(config.get('abiquo', 'stream_path'))
 
 
